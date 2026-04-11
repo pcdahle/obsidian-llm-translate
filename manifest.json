@@ -1,0 +1,9 @@
+{
+  "id": "obsidian-translate",
+  "name": "Translate",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "选中翻译 / 全文翻译，支持 DeepSeek、OpenAI、Gemini 等多个 OpenAI 兼容 API。",
+  "author": "xiaochen",
+  "isDesktopOnly": false
+}
