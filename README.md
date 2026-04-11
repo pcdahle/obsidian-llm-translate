@@ -23,7 +23,7 @@
 
 ### 方式二：手动安装
 
-1. 下载最新的 [Release](https://github.com/xiaochen/obsidian-llm-translate/releases) 里的 `main.js`、`manifest.json`、`styles.css`
+1. 下载最新的 [Release](https://github.com/chenhuajinchj/obsidian-llm-translate/releases) 里的 `main.js`、`manifest.json`、`styles.css`
 2. 放到 vault 的 `.obsidian/plugins/llm-translate/` 目录里（没有就新建）
 3. 重启 Obsidian，到 **设置 → 第三方插件** 启用 LLM Translate
 
