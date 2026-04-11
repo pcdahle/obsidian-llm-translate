@@ -1,5 +1,7 @@
+const noop = (..._args: unknown[]): void => {};
+
 export const logger = {
-  info: console.log,
+  info: noop,
+  debug: noop,
   error: console.error,
-  debug: console.debug,
 };

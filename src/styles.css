@@ -1,0 +1,5 @@
+.llm-translate-prompt-textarea {
+  width: 100%;
+  font-family: var(--font-monospace);
+  min-height: 200px;
+}

@@ -16,8 +16,6 @@ export class SettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "API 服务商" });
-
     new Setting(containerEl)
       .setName("添加服务商")
       .setDesc("选择一个预置服务商，或选择「自定义」手动填写。")
@@ -57,7 +55,7 @@ export class SettingTab extends PluginSettingTab {
       this.renderProvider(containerEl, provider);
     }
 
-    containerEl.createEl("h2", { text: "翻译设置" });
+    new Setting(containerEl).setName("翻译").setHeading();
 
     new Setting(containerEl)
       .setName("目标语言")
@@ -83,8 +81,7 @@ export class SettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           });
         ta.inputEl.rows = 10;
-        ta.inputEl.style.width = "100%";
-        ta.inputEl.style.fontFamily = "var(--font-monospace)";
+        ta.inputEl.classList.add("llm-translate-prompt-textarea");
       })
       .addExtraButton((btn) =>
         btn

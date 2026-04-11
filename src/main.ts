@@ -7,6 +7,7 @@ import {
   PluginManifest,
 } from "obsidian";
 import type { Menu } from "obsidian";
+import "./styles.css";
 import { LLMClient } from "./llm/llm-client";
 import { mapLlmErrorToReadable } from "./llm/error-handler";
 import { logger } from "./logger";
@@ -159,6 +160,7 @@ export default class TranslatePlugin extends Plugin {
     const originalFullText = editor.getValue();
 
     await this.runStream({
+      editor,
       userContent: selection,
       originalFullText,
       loaderMessage: `${PLUGIN_NAME}：翻译选中...`,
@@ -193,6 +195,7 @@ export default class TranslatePlugin extends Plugin {
     const bodyStartPos = offsetToPos(fullText, bodyStartOffset);
 
     await this.runStream({
+      editor,
       userContent: body,
       originalFullText: fullText,
       loaderMessage: `${PLUGIN_NAME}：翻译全文...`,
@@ -210,12 +213,14 @@ export default class TranslatePlugin extends Plugin {
   }
 
   private async runStream({
+    editor,
     userContent,
     originalFullText,
     loaderMessage,
     writeChunk,
     finalize,
   }: {
+    editor: Editor;
     userContent: string;
     originalFullText: string;
     loaderMessage: string;
@@ -255,8 +260,7 @@ export default class TranslatePlugin extends Plugin {
       finalize(text);
     } catch (error) {
       if (error instanceof AbortError) {
-        // 用户取消：整段恢复原文
-        this.app.workspace.activeEditor?.editor?.setValue(originalFullText);
+        editor.setValue(originalFullText);
       } else {
         showErrorNotification(mapLlmErrorToReadable(error));
         logger.error("翻译失败", error);

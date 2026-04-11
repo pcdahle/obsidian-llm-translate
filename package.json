@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-translate",
+  "name": "llm-translate",
   "type": "module",
   "version": "0.1.0",
   "main": "main.js",

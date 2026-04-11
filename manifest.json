@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-translate",
-  "name": "Translate",
+  "id": "llm-translate",
+  "name": "LLM Translate",
   "version": "0.1.0",
   "minAppVersion": "0.15.0",
-  "description": "选中翻译 / 全文翻译，支持 DeepSeek、OpenAI、Gemini 等多个 OpenAI 兼容 API。",
+  "description": "Translate selected text or full notes using DeepSeek, OpenAI, Gemini, and other OpenAI-compatible LLM providers. Preserves YAML frontmatter and supports streaming with cancellation.",
   "author": "xiaochen",
   "isDesktopOnly": false
 }
