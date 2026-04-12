@@ -70,7 +70,7 @@ export default class TranslatePlugin extends Plugin {
         }
         menu.addItem((item) =>
           item
-            .setTitle("翻译全文（保留 Frontmatter）")
+            .setTitle("翻译全文（保留 frontmatter）")
             .setIcon("book-open-text")
             .setSection("selection")
             .onClick(() => {
@@ -119,7 +119,7 @@ export default class TranslatePlugin extends Plugin {
     });
     this.addCommand({
       id: "translate-document",
-      name: "翻译全文（保留 Frontmatter）",
+      name: "翻译全文（保留 frontmatter）",
       editorCallback: (editor) => {
         void this.translateDocument(editor);
       },
@@ -302,7 +302,7 @@ class ProviderSwitcherModal extends FuzzySuggestModal<ProviderConfig> {
   constructor(
     app: App,
     private readonly providers: ProviderConfig[],
-    private readonly onPick: (provider: ProviderConfig) => void,
+    private readonly onPick: (provider: ProviderConfig) => void | Promise<void>,
   ) {
     super(app);
     this.setPlaceholder("选择要激活的服务商");
@@ -317,7 +317,7 @@ class ProviderSwitcherModal extends FuzzySuggestModal<ProviderConfig> {
   }
 
   override onChooseItem(item: ProviderConfig): void {
-    this.onPick(item);
+    void this.onPick(item);
   }
 }
 

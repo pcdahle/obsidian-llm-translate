@@ -15,7 +15,7 @@ export class RenameFilePlugin implements Plugin {
     this.setup = this.setup.bind(this);
   }
 
-  async setup(build: PluginBuild) {
+  setup(build: PluginBuild) {
     build.onEnd(async (result) => {
       if (result.errors.length > 0) return;
 

@@ -9,12 +9,15 @@ export const obsidianFetchAdapter: typeof fetch = async (url, options) => {
     throw new AbortError();
   }
 
+  const urlString = typeof url === "string" ? url : url instanceof URL ? url.href : url.url;
+  const bodyString = typeof options?.body === "string" ? options.body : "";
+
   const response = await requestWithAbort(
     requestUrl({
-      url: url.toString(),
+      url: urlString,
       method: options?.method ?? "GET",
       headers: mapHeaders(options?.headers),
-      body: options?.body?.toString() ?? "",
+      body: bodyString,
       throw: false,
     }),
     options?.signal,

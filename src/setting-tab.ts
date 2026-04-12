@@ -156,10 +156,9 @@ export class SettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("API Key")
+      .setName("API key")
       .addText((text) => {
         text
-          .setPlaceholder("sk-...")
           .setValue(provider.apiKey)
           .onChange(async (value) => {
             provider.apiKey = value;
@@ -172,7 +171,6 @@ export class SettingTab extends PluginSettingTab {
       .setName("模型名")
       .addText((text) =>
         text
-          .setPlaceholder("deepseek-chat")
           .setValue(provider.model)
           .onChange(async (value) => {
             provider.model = value;
