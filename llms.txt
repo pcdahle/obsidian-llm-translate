@@ -1,0 +1,14 @@
+# obsidian-llm-translate
+
+> An Obsidian plugin that translates selected text or whole notes with LLMs (DeepSeek, OpenAI, Gemini, and any OpenAI-compatible provider), with streaming output and frontmatter preservation.
+
+obsidian-llm-translate lets you translate English articles, notes, or clippings into any language directly inside Obsidian using your own LLM API key.
+It supports streaming output so you see the translation appear in real time, preserves YAML frontmatter on full-note translation, and lets you cancel mid-stream.
+Nine provider presets (DeepSeek, OpenAI, Gemini, Doubao, Kimi, Qwen, Zhipu, SiliconFlow, OpenRouter) plus a custom endpoint option cover virtually any OpenAI-compatible API.
+
+## Documentation
+- [README (English)](README.md): Full English documentation — installation, configuration, usage, FAQ, and comparison with alternatives.
+- [中文文档 (README.zh-CN.md)](README.zh-CN.md): 完整中文文档——安装、配置、使用说明、常见问题及与同类插件对比。
+
+## Links
+- Repository: https://github.com/chenhuajinchj/obsidian-llm-translate

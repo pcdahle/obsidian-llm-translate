@@ -1,105 +1,171 @@
+**English** | [中文文档](README.zh-CN.md)
+
 # LLM Translate
 
-用大语言模型翻译 Obsidian 笔记。选中翻译、全文翻译都只要一个命令或右键菜单。
+> obsidian-llm-translate is an Obsidian plugin that translates selected text or whole notes with LLMs (DeepSeek, OpenAI, Gemini, and any OpenAI-compatible provider), with streaming output and frontmatter preservation.
 
-支持多个 OpenAI 兼容的服务商：DeepSeek、OpenAI、Gemini、豆包、Kimi、通义千问、智谱、SiliconFlow、OpenRouter，也可以自定义任意 OpenAI 兼容端点。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Obsidian](https://img.shields.io/badge/Obsidian-%3E%3D0.15.0-purple)](https://obsidian.md)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue)](manifest.json)
 
-## 功能特点
+> **Desktop only** — `isDesktopOnly: true`. Mobile (iOS/Android) is not supported.
 
-- **翻译选中文本** — 选中一段英文 → 命令面板或右键菜单 → AI 翻译并替换选中
-- **翻译全文** — 自动保留 YAML frontmatter，只翻译正文。长文（> 20000 字符）会先弹确认框
-- **流式输出** — 翻译过程中实时看到译文一点点写入编辑器
-- **可中断** — 状态栏有加载图标，悬停后点击即可取消，取消后整段恢复原文
-- **多服务商** — 内置 9 个预置 + 自定义，可随时通过命令面板快速切换
-- **自定义提示词** — 翻译用的 system 提示词可编辑，支持 `{{targetLanguage}}` 占位符
+---
 
-## 安装
+## Why
 
-### 方式一：Obsidian 社区插件市场（推荐）
+You clip English articles or YouTube transcripts into Obsidian and want them in your reading language — without leaving the editor. LLM Translate keeps it simple: one command to translate a selection, one command to translate the whole note. YAML frontmatter is never touched.
 
-1. 打开 **设置 → 第三方插件 → 浏览**
-2. 搜索 "LLM Translate"
-3. 点击 **安装**，然后 **启用**
+---
 
-### 方式二：手动安装
+## Features
 
-1. 下载最新的 [Release](https://github.com/chenhuajinchj/obsidian-llm-translate/releases) 里的 `main.js`、`manifest.json`、`styles.css`
-2. 放到 vault 的 `.obsidian/plugins/llm-translate/` 目录里（没有就新建）
-3. 重启 Obsidian，到 **设置 → 第三方插件** 启用 LLM Translate
+- **Translate selection** — select text → command palette or right-click → AI translates and replaces inline
+- **Translate full note** — preserves YAML frontmatter; only the body is sent to the LLM
+- **Streaming output** — translation appears word-by-word as it arrives
+- **Cancellation** — a spinner in the status bar turns into an ✕ on hover; click to stop and restore the original text
+- **9 built-in providers + custom** — DeepSeek, OpenAI, Gemini, Doubao (豆包), Kimi, Qwen (通义千问), Zhipu (智谱), SiliconFlow, OpenRouter, or any OpenAI-compatible endpoint
+- **Quick provider switch** — a single command lets you flip between providers without opening settings
+- **Editable system prompt** — supports `{{targetLanguage}}` placeholder; reset button restores the default
+- **Long-note guard** — notes over 20,000 characters require a confirmation before translation
 
-## 配置
+---
 
-首次使用需要添加一个服务商并填入 API Key。
+## Install
 
-1. 打开 **设置 → LLM Translate**
-2. 从 **添加服务商** 下拉菜单里选一个预置（比如 DeepSeek）
-3. 展开刚添加的服务商，填入：
-   - **API Key**：从服务商后台生成
-   - **模型名**：默认已填常用值，可按需改
-4. 如需多个服务商，继续添加，用 **设为当前** 按钮切换
+### Manual install (current method)
 
-### 获取 API Key
+The plugin is **not yet listed** in the Obsidian Community Plugin directory. Install manually:
 
-| 服务商 | 注册地址 | 推荐模型 |
+1. Go to the [Releases page](https://github.com/chenhuajinchj/obsidian-llm-translate/releases) and download the latest `main.js`, `manifest.json`, and `styles.css`.
+2. Create the folder `<your-vault>/.obsidian/plugins/llm-translate/` if it does not exist.
+3. Copy the three files into that folder.
+4. Restart Obsidian, then go to **Settings → Community plugins**, find **LLM Translate**, and enable it.
+
+> Community Plugin directory listing is planned for a future release.
+
+---
+
+## Configuration
+
+1. Open **Settings → LLM Translate**.
+2. From the **Add provider** dropdown, pick a preset (e.g. DeepSeek).
+3. Expand the newly added provider and fill in:
+   - **API Key** — generated from the provider's dashboard
+   - **Model** — a sensible default is pre-filled; change as needed
+4. To use multiple providers, add more and use the **Set as current** button to switch.
+
+### Where to get API keys
+
+| Provider | Sign-up URL | Default model |
 |---|---|---|
 | DeepSeek | platform.deepseek.com | `deepseek-chat` |
 | OpenAI | platform.openai.com | `gpt-4o-mini` |
 | Gemini | aistudio.google.com | `gemini-2.0-flash` |
+| Doubao (豆包) | console.volcengine.com/ark | *(set manually)* |
 | Kimi | platform.moonshot.cn | `moonshot-v1-8k` |
-| 通义千问 | dashscope.console.aliyun.com | `qwen-turbo` |
-| 智谱 | bigmodel.cn | `glm-4-flash` |
+| Qwen (通义千问) | dashscope.console.aliyun.com | `qwen-turbo` |
+| Zhipu (智谱) | bigmodel.cn | `glm-4-flash` |
+| SiliconFlow | siliconflow.cn | *(set manually)* |
+| OpenRouter | openrouter.ai | *(set manually)* |
 
-## 使用
+---
 
-### 三个命令（命令面板 Ctrl/Cmd + P）
+## Usage
 
-- **翻译选中文本** — 选中后触发
-- **翻译全文（保留 Frontmatter）** — 任何时候都可触发
-- **切换 API 服务商** — 在多个服务商之间快速切换
+### Three commands (Cmd/Ctrl + P)
 
-### 右键菜单
+| Command | When to use |
+|---|---|
+| **Translate selected text** | Text is selected |
+| **Translate full note (preserve frontmatter)** | Anytime |
+| **Switch API provider** | Quickly change the active provider |
 
-在编辑器里选中文本后右键，会看到 **翻译选中文本** 和 **翻译全文（保留 Frontmatter）** 两项。
+### Right-click menu
 
-### 快捷键绑定（可选）
+Select text in the editor, right-click, and you will see **Translate selected text** and **Translate full note (preserve frontmatter)**.
 
-进入 **设置 → 快捷键**，搜索 "LLM Translate"，给三个命令各绑一个快捷键，用起来更顺滑。
+### Keyboard shortcuts (optional)
 
-## 自定义翻译提示词
+Go to **Settings → Hotkeys**, search "LLM Translate", and bind a hotkey to any of the three commands.
 
-默认提示词：
+---
+
+## Custom system prompt
+
+Default prompt (translated for reference):
 
 ```
-你是一个专业翻译引擎。请将以下内容翻译为{{targetLanguage}}。
+You are a professional translation engine. Translate the following content into {{targetLanguage}}.
 
-规则：
-- 保持原文的段落结构和 Markdown 格式
-- 专有名词、技术术语首次出现时保留英文原文并括号注明中文
-- 不要添加解释、总结或评论，只输出翻译结果
-- 保持原文的语气和风格
-- 数字、URL、代码片段保持不变
+Rules:
+- Keep the original paragraph structure and Markdown formatting
+- For proper nouns and technical terms, keep the English on first occurrence with a parenthetical translation
+- Output only the translation — no explanations, summaries, or comments
+- Preserve the tone and style of the original
+- Leave numbers, URLs, and code snippets unchanged
 ```
 
-可以在设置页里改写提示词，`{{targetLanguage}}` 会被替换成 **目标语言** 设置里的值（默认 "中文"）。改完想回到默认，点旁边的恢复按钮即可。
+Edit the prompt in settings. `{{targetLanguage}}` is replaced by the **Target language** value (default: `中文`). Click the reset button to restore the default.
 
-## 常见问题
+---
 
-**Q：翻译一半能停下来吗？**
-A：可以。桌面端状态栏会有一个转圈图标，悬停后变成 X，点击即可取消，原文会整段恢复。
+## Compared to alternatives
 
-**Q：长文会不会超出模型 context？**
-A：超过 20000 字符会先弹确认框。主流模型上下文都在 128K 以上，20000 字符远在安全范围内，但确认框能防止你不小心对一个超大文件按了翻译全文。
+| | **LLM Translate** (this plugin) | **Translate** (lyc8503/obsidian-translate) | **obsidian-llm-shortcut** (chernodub) |
+|---|---|---|---|
+| Translation focus | Yes — translation only | Yes — translation only | No — general LLM shortcut runner |
+| LLM backend | OpenAI-compatible only | Multiple engines (DeepL, Google, LibreTranslate, LLM…) | OpenAI-compatible |
+| Streaming output | Yes | No | Yes |
+| Frontmatter preservation | Yes | Partial | No |
+| Provider switching | In-editor command | Settings only | Settings only |
+| Cancellation | Yes (status bar ✕) | No | No |
+| Relationship | — | Independent project | This plugin is derived from it |
 
-**Q：frontmatter 会被翻译吗？**
-A：不会。全文翻译只处理 `---` 分隔符之后的正文，frontmatter 原样保留。
+---
 
-**Q：为什么翻译到一半失败了？**
-A：常见原因是 API Key 过期、余额不足、模型名拼写错误。插件会弹一个带中文提示的错误框，按提示检查设置即可。
+## FAQ
 
-## 许可证
+**Q: Can I stop a translation mid-way?**  
+A: Yes. The status bar shows a spinner during translation; hover over it to reveal an ✕ and click to cancel. The original text is fully restored.
 
-MIT
+**Q: Will the plugin run on mobile (iOS/Android)?**  
+A: No. The plugin is marked `isDesktopOnly: true` in its manifest. It is only tested and supported on macOS, Windows, and Linux.
 
-## 致谢
+**Q: Does the frontmatter get translated?**  
+A: No. Full-note translation only processes the body after the `---` delimiter. Frontmatter is passed through unchanged.
 
-基于 [obsidian-llm-shortcut](https://github.com/chernodub/obsidian-llm-shortcut) 精简改造而来，保留了它的流式输出和请求适配层。
+**Q: What happens with very long notes?**  
+A: Notes over 20,000 characters trigger a confirmation dialog before the request is sent. Most modern LLMs have ≥128 K context, so 20,000 characters is well within limits — the dialog is a safeguard against accidental large-file translation.
+
+**Q: Why did my translation fail halfway?**  
+A: Common causes: expired API key, zero balance, or a misspelled model name. The plugin shows an error dialog with a description. Check Settings → LLM Translate and verify the key and model.
+
+**Q: Do Chinese providers (DeepSeek, Doubao) require a VPN?**  
+A: Generally no — DeepSeek (`api.deepseek.com`), Doubao (Volcengine ARK), Kimi, Qwen, Zhipu, and SiliconFlow all have mainland-China-accessible API endpoints. OpenAI and Gemini endpoints do require network access that bypasses the GFW if you are in China. DeepSeek is currently the cheapest option for Chinese users: `deepseek-chat` is very affordable and produces high-quality translations.
+
+**Q: Which target languages are supported? Can I translate in the reverse direction (Chinese → English)?**  
+A: Any language the underlying LLM supports. Set **Target language** in settings to any language name — `English`, `Japanese`, `French`, etc. — and the prompt will instruct the model to translate into that language. Reverse translation (Chinese → English) works the same way: just set the target language to `English`.
+
+**Q: Can I use a self-hosted or third-party OpenAI-compatible endpoint?**  
+A: Yes. Select **Custom** from the provider dropdown, enter your base URL (e.g. `http://localhost:11434/v1` for Ollama), API key (if any), and model name.
+
+---
+
+## Requirements
+
+- Obsidian ≥ 0.15.0
+- Desktop only (macOS / Windows / Linux)
+- An API key from at least one supported provider
+
+---
+
+## License
+
+[MIT](LICENSE) — © 2026 xiaochen
+
+---
+
+## Acknowledgements
+
+Derived from [obsidian-llm-shortcut](https://github.com/chernodub/obsidian-llm-shortcut) by chernodub — the streaming output layer and OpenAI-compatible request adapter are based on that work.
