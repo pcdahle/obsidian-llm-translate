@@ -5,6 +5,6 @@
   "minAppVersion": "0.15.0",
   "description": "Translate selected text or full notes using DeepSeek, OpenAI, Gemini, and other OpenAI-compatible LLM providers. Preserves YAML frontmatter and supports streaming with cancellation.",
   "author": "xiaochen",
-  "authorUrl": "https://github.com/chenhuajinchj",
+  "authorUrl": "https://github.com/chenyuxiaojin",
   "isDesktopOnly": true
 }

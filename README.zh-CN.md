@@ -37,7 +37,7 @@
 
 该插件**尚未上架** Obsidian 社区插件市场，请手动安装：
 
-1. 前往 [Releases 页面](https://github.com/chenhuajinchj/obsidian-llm-translate/releases)，下载最新版的 `main.js`、`manifest.json`、`styles.css`。
+1. 前往 [Releases 页面](https://github.com/chenyuxiaojin/obsidian-llm-translate/releases)，下载最新版的 `main.js`、`manifest.json`、`styles.css`。
 2. 在 vault 里新建目录 `<你的 vault>/.obsidian/plugins/llm-translate/`（没有就手动创建）。
 3. 把三个文件放进这个目录。
 4. 重启 Obsidian，进入**设置 → 第三方插件**，找到 **LLM Translate** 并启用。

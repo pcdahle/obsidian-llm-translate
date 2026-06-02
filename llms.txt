@@ -11,4 +11,4 @@ Nine provider presets (DeepSeek, OpenAI, Gemini, Doubao, Kimi, Qwen, Zhipu, Sili
 - [中文文档 (README.zh-CN.md)](README.zh-CN.md): 完整中文文档——安装、配置、使用说明、常见问题及与同类插件对比。
 
 ## Links
-- Repository: https://github.com/chenhuajinchj/obsidian-llm-translate
+- Repository: https://github.com/chenyuxiaojin/obsidian-llm-translate

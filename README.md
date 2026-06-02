@@ -37,7 +37,7 @@ You clip English articles or YouTube transcripts into Obsidian and want them in 
 
 The plugin is **not yet listed** in the Obsidian Community Plugin directory. Install manually:
 
-1. Go to the [Releases page](https://github.com/chenhuajinchj/obsidian-llm-translate/releases) and download the latest `main.js`, `manifest.json`, and `styles.css`.
+1. Go to the [Releases page](https://github.com/chenyuxiaojin/obsidian-llm-translate/releases) and download the latest `main.js`, `manifest.json`, and `styles.css`.
 2. Create the folder `<your-vault>/.obsidian/plugins/llm-translate/` if it does not exist.
 3. Copy the three files into that folder.
 4. Restart Obsidian, then go to **Settings → Community plugins**, find **LLM Translate**, and enable it.
