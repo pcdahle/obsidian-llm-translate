@@ -7,7 +7,7 @@ const CANCEL_ICON = "x-circle";
 const SPINNER_QUERY_ATTR = "data-loader-spinner";
 
 export function createSpinnerElement(): HTMLElement {
-  const spinner = document.createElement("div");
+  const spinner = createDiv();
   spinner.setAttribute(SPINNER_QUERY_ATTR, "true");
   renderSpinnerIcon(spinner);
   spinner.setAttribute("aria-hidden", "true");

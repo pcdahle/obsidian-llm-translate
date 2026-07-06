@@ -97,6 +97,6 @@ function isStatusCodeError(error: unknown): error is { status: number } {
     error != null &&
     typeof error === "object" &&
     "status" in error &&
-    typeof (error as { status: unknown }).status === "number"
+    typeof error.status === "number"
   );
 }

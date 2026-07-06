@@ -1,5 +1,5 @@
 import { context } from "esbuild";
-import { RenameFilePlugin } from "./config/rename-file-esbuild-plugin.ts";
+import { RenameFilePlugin } from "./config/rename-file-esbuild-plugin.mjs";
 
 const isDev = process.env["NODE_ENV"] === "development";
 const isWatch = process.env["ESBUILD_WATCH"] === "true";

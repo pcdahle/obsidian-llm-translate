@@ -1,21 +1,20 @@
-import type { Plugin, PluginBuild } from "esbuild";
 import fs from "node:fs/promises";
-import path from "path";
+import path from "node:path";
 
-export class RenameFilePlugin implements Plugin {
-  readonly name = "RenameFilePlugin";
+export class RenameFilePlugin {
+  name = "RenameFilePlugin";
 
-  #fromName: string;
-  #toName: string;
+  #fromName;
+  #toName;
 
-  constructor(params: { fromName: string; toName: string }) {
+  constructor(params) {
     this.#fromName = params.fromName;
     this.#toName = params.toName;
 
     this.setup = this.setup.bind(this);
   }
 
-  setup(build: PluginBuild) {
+  setup(build) {
     build.onEnd(async (result) => {
       if (result.errors.length > 0) return;
 

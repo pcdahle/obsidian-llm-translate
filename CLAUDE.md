@@ -41,4 +41,4 @@ npm run dev        # 开发模式（watch）
 ## 构建产物部署
 
 构建后将 `main.js` + `manifest.json` 复制到：
-`~/Library/Mobile Documents/iCloud~md~obsidian/Documents/.obsidian/plugins/obsidian-translate/`
+`~/obsidian/.obsidian/plugins/llm-translate/`

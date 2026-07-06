@@ -1,14 +1,15 @@
 {
   "name": "llm-translate",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "main.js",
   "scripts": {
-    "build": "node esbuild.ts",
+    "build": "node esbuild.mjs",
     "build:clean": "rm -f main.js styles.css",
-    "build:dev": "NODE_ENV=development node esbuild.ts",
-    "dev": "NODE_ENV=development ESBUILD_WATCH=true node esbuild.ts",
-    "check": "tsc"
+    "build:dev": "NODE_ENV=development node esbuild.mjs",
+    "dev": "NODE_ENV=development ESBUILD_WATCH=true node esbuild.mjs",
+    "check": "tsc",
+    "lint": "eslint src"
   },
   "engines": {
     "node": ">=22.6.0"
@@ -18,8 +19,11 @@
   "devDependencies": {
     "@types/node": "^24.10.1",
     "esbuild": "^0.27.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-obsidianmd": "^0.4.1",
     "obsidian": "^1.10.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.62.1"
   },
   "dependencies": {
     "clsx": "^2.1.1",

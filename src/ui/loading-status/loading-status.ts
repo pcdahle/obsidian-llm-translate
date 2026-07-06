@@ -10,9 +10,9 @@ import styles from "./loading-status.module.css";
 const CANCEL_HINT = "点击取消";
 
 export function createLoadingStatusFragment(message: string): DocumentFragment {
-  const fragment = document.createDocumentFragment();
+  const fragment = createFragment();
 
-  const container = document.createElement("div");
+  const container = createDiv();
   container.classList.add(clsx(styles.container));
   container.setAttribute("role", "status");
   container.setAttribute("aria-live", "polite");
@@ -20,7 +20,7 @@ export function createLoadingStatusFragment(message: string): DocumentFragment {
   const spinner = createSpinnerElement();
   container.appendChild(spinner);
 
-  const text = document.createElement("span");
+  const text = createSpan();
   text.textContent = message;
 
   container.appendChild(text);

@@ -87,7 +87,7 @@ export default class TranslatePlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const data = await this.loadData();
+    const data = (await this.loadData()) as Partial<PluginSettings> | null;
     this.settings = { ...DEFAULT_SETTINGS, ...data };
   }
 
