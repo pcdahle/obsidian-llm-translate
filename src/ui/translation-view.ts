@@ -9,10 +9,17 @@ export const TRANSLATION_VIEW_TYPE = "llm-translate-review";
 export interface TranslationSource {
   /** Path of the note the translation belongs to. */
   readonly filePath: string;
-  /** Front-matter to put back in front of the translated body. */
-  readonly frontmatter: string;
   /** Whole note as it was when the translation started. */
   readonly originalContent: string;
+  /**
+   * Half-open range of `originalContent` the translation replaces on insert:
+   * the body for a full note (so the front-matter survives), the selected
+   * range for a selection.
+   */
+  readonly replaceStart: number;
+  readonly replaceEnd: number;
+  /** What was translated, for the status line. */
+  readonly kind: "note" | "selection";
 }
 
 /**
@@ -50,7 +57,7 @@ export class TranslationView extends ItemView {
   beginTranslation(source: TranslationSource): void {
     this.source = source;
     this.render();
-    this.setStatus(`Translating ${basename(source.filePath)}…`);
+    this.setStatus(`Translating ${describe(source)}…`);
     this.setText("");
     this.setActionsVisible(false);
   }
@@ -67,8 +74,8 @@ export class TranslationView extends ItemView {
 
   /** Called once the stream is done: shows the Insert / Discard buttons. */
   completeTranslation(): void {
-    const name = this.source ? basename(this.source.filePath) : "the note";
-    this.setStatus(`Translated ${name}. Review it, then insert or discard it.`);
+    const what = this.source ? describe(this.source) : "the note";
+    this.setStatus(`Translated ${what}. Review it, then insert or discard it.`);
     this.setActionsVisible(true);
   }
 
@@ -134,9 +141,10 @@ export class TranslationView extends ItemView {
   }
 
   /**
-   * Writes the reviewed translation into the note it came from, keeping the
-   * front-matter. Refuses to write if the note changed in the meantime,
-   * rather than silently overwriting the newer text.
+   * Writes the reviewed translation back over the range it came from, so the
+   * front-matter and everything outside that range are left alone. Refuses to
+   * write if the note changed in the meantime, rather than silently
+   * overwriting the newer text.
    */
   private async insert(): Promise<void> {
     const source = this.source;
@@ -163,7 +171,10 @@ export class TranslationView extends ItemView {
       return;
     }
 
-    const translated = source.frontmatter + this.getText();
+    const translated =
+      current.slice(0, source.replaceStart) +
+      this.getText() +
+      current.slice(source.replaceEnd);
     await this.app.vault.process(file, () => translated);
 
     this.source = undefined;
@@ -171,6 +182,11 @@ export class TranslationView extends ItemView {
     this.setActionsVisible(false);
     showInfoNotification("translation inserted");
   }
+}
+
+function describe(source: TranslationSource): string {
+  const name = basename(source.filePath);
+  return source.kind === "selection" ? `a selection of ${name}` : name;
 }
 
 function basename(path: string): string {

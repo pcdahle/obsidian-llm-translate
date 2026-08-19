@@ -1,7 +1,6 @@
 import {
   App,
   Editor,
-  EditorPosition,
   FuzzySuggestModal,
   Plugin,
   PluginManifest,
@@ -33,6 +32,7 @@ import {
   TRANSLATION_VIEW_TYPE,
   TranslationView,
 } from "./ui/translation-view";
+import type { TranslationSource } from "./ui/translation-view";
 import { AbortError } from "./utils/abort-error";
 import { LONG_TEXT_THRESHOLD, PLUGIN_NAME } from "./utils/constants";
 import { nextFrame } from "./utils/next-frame";
@@ -182,32 +182,30 @@ export default class TranslatePlugin extends Plugin {
     }).open();
   }
 
+  /** Translates the selected text into the review panel. */
   private async translateSelection(editor: Editor): Promise<void> {
     if (!this.ensureClient()) return;
+    const file = this.app.workspace.getActiveFile();
+    if (!file) {
+      showErrorNotification({ title: "No note is open" });
+      return;
+    }
+
     const selection = editor.getSelection();
     if (!selection.trim()) {
       showErrorNotification({ title: "Select the text you want to translate first" });
       return;
     }
 
-    const fromCursor = editor.getCursor("from");
-    const originalFullText = editor.getValue();
-
-    await this.runStream({
+    await this.streamIntoReviewPanel({
       userContent: selection,
       loaderMessage: `${PLUGIN_NAME}: translating selection...`,
-      onAbort: () => {
-        editor.setValue(originalFullText);
-      },
-      writeChunk: (text) => {
-        this.writeAt(editor, fromCursor, text);
-      },
-      finalize: (text) => {
-        this.writeAt(editor, fromCursor, text);
-        editor.setSelection(
-          fromCursor,
-          incChar(fromCursor, text.length),
-        );
+      source: {
+        filePath: file.path,
+        originalContent: editor.getValue(),
+        replaceStart: editor.posToOffset(editor.getCursor("from")),
+        replaceEnd: editor.posToOffset(editor.getCursor("to")),
+        kind: "selection",
       },
     });
   }
@@ -225,7 +223,7 @@ export default class TranslatePlugin extends Plugin {
     }
 
     const fullText = editor.getValue();
-    const { frontmatter, body } = extractBody(fullText);
+    const { body, bodyStartOffset } = extractBody(fullText);
 
     if (!body.trim()) {
       showErrorNotification({ title: "The note body is empty, nothing to translate" });
@@ -237,6 +235,29 @@ export default class TranslatePlugin extends Plugin {
       if (!ok) return;
     }
 
+    await this.streamIntoReviewPanel({
+      userContent: body,
+      loaderMessage: `${PLUGIN_NAME}: translating full note...`,
+      source: {
+        filePath: file.path,
+        originalContent: fullText,
+        replaceStart: bodyStartOffset,
+        replaceEnd: fullText.length,
+        kind: "note",
+      },
+    });
+  }
+
+  /** Shared tail of both commands: open the panel and stream the reply into it. */
+  private async streamIntoReviewPanel({
+    userContent,
+    loaderMessage,
+    source,
+  }: {
+    userContent: string;
+    loaderMessage: string;
+    source: TranslationSource;
+  }): Promise<void> {
     const view = await this.activateTranslationView();
     if (!view) {
       showErrorNotification({
@@ -246,15 +267,11 @@ export default class TranslatePlugin extends Plugin {
       return;
     }
 
-    view.beginTranslation({
-      filePath: file.path,
-      frontmatter,
-      originalContent: fullText,
-    });
+    view.beginTranslation(source);
 
     await this.runStream({
-      userContent: body,
-      loaderMessage: `${PLUGIN_NAME}: translating full note...`,
+      userContent,
+      loaderMessage,
       writeChunk: (text) => {
         view.setText(text);
       },
@@ -347,18 +364,6 @@ export default class TranslatePlugin extends Plugin {
     return true;
   }
 
-  private writeAt(
-    editor: Editor,
-    from: EditorPosition,
-    text: string,
-  ): void {
-    editor.replaceRange(
-      text,
-      from,
-      editor.getCursor("to"),
-    );
-    editor.setSelection(from, incChar(from, text.length));
-  }
 }
 
 class ProviderSwitcherModal extends FuzzySuggestModal<ProviderConfig> {
@@ -382,8 +387,4 @@ class ProviderSwitcherModal extends FuzzySuggestModal<ProviderConfig> {
   override onChooseItem(item: ProviderConfig): void {
     void this.onPick(item);
   }
-}
-
-function incChar(cursor: EditorPosition, char: number): EditorPosition {
-  return { ...cursor, ch: cursor.ch + char };
 }

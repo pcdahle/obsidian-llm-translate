@@ -55,7 +55,7 @@ Possibili aggiunte future: Anthropic e Mistral, entrambi con endpoint compatibil
 
 ```
 src/
-├── main.ts                    # Entry point: 4 comandi, menu contestuale, scrittura in streaming, annulla/ripristina
+├── main.ts                    # Entry point: 3 comandi, menu contestuale, invio della traduzione al pannello
 ├── settings.ts                # Interfaccia PluginSettings + valori predefiniti + prompt di sistema
 ├── setting-tab.ts             # Pagina impostazioni: gestione provider + impostazioni di traduzione
 ├── logger.ts                  # Log
@@ -102,8 +102,8 @@ Risolverlo richiede una `fetch` che streami davvero. `requestUrl` non lo permett
 > niente da recuperare: la nota non viene toccata. E nella pratica il comando era
 > inutilizzabile — la traduzione finisce prima che si riesca a cercarlo nella palette.
 > Resta il clic sullo spinner nella barra di stato, che serve a fermare una richiesta
-> appesa, e resta il ripristino del testo per la traduzione della **selezione**, che
-> continua a sostituire inline.
+> appesa. Dal 19/08/2026 nemmeno la selezione tocca più la nota, quindi non esiste
+> più alcun percorso in cui serva ripristinare il testo originale.
 
 
 
@@ -121,7 +121,7 @@ Dettagli che contano:
 
 - l'inserimento conserva il front-matter e riscrive il file con `vault.process`;
 - se la nota è cambiata mentre la si rivedeva, l'inserimento **si rifiuta** invece di sovrascrivere le modifiche più recenti;
-- la traduzione della **selezione** resta inline: per una frase la sostituzione immediata è comoda e si annulla con Ctrl+Z.
+- vale per **entrambi** i comandi: la nota intera sostituisce il corpo del testo lasciando fuori il front-matter, la selezione sostituisce solo l'intervallo selezionato. All'inizio la selezione era rimasta inline, ma la prova sul campo ha detto il contrario — la revisione serve anche lì.
 
 Il pannello è anche il posto giusto per un eventuale streaming vero (problema 1): il testo può scorrere lì senza toccare il documento.
 
