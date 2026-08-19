@@ -178,6 +178,7 @@ export class TranslationView extends ItemView {
     await this.app.vault.process(file, () => translated);
 
     this.source = undefined;
+    this.setText("");
     this.setStatus(`Inserted into ${basename(file.path)}.`);
     this.setActionsVisible(false);
     showInfoNotification("translation inserted");
