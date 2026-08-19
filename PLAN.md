@@ -123,9 +123,11 @@ Dettagli che contano:
 
 Il pannello è anche il posto giusto per un eventuale streaming vero (problema 1): il testo può scorrere lì senza toccare il documento.
 
-## Milestone 2 — pubblicazione nella directory della comunità
+## Milestone 2 — pubblicazione nella directory della comunità ✅ completata il 19/08/2026
 
 Obiettivo: il plugin diventa installabile da chiunque, dalla schermata «Community plugins» di Obsidian, senza copiare file a mano.
+
+**Esito:** submission accettata dalla revisione automatica il 19/08/2026 — versione `0.2.0`, commit `b9bd092`, stato *Completed*. Il plugin diventa cercabile e installabile dall'app entro 24 ore.
 
 ### Posizionamento
 
@@ -171,7 +173,13 @@ Nota per il README: questi punti vanno presentati come «cosa fa questo plugin»
 3. **README per il pubblico** — in inglese, con i tre punti di posizionamento qui sopra, una schermata del pannello di revisione, la tabella dei provider, e una nota esplicita sul fatto che **le API key sono salvate in chiaro** in `data.json` del vault (è la norma per questi plugin, ma va detto).
 4. **Conformità alle regole di revisione** — chiudere i due warning rimasti di `eslint-plugin-obsidianmd`: adottare `getSettingDefinitions()` per la ricerca nelle impostazioni (Obsidian 1.13+), e sistemare il placeholder segnalato da `sentence-case`. Ricontrollare anche l'assenza di log rumorosi in produzione.
 5. **Release su GitHub** — tag uguale al numero di versione **senza** la `v` iniziale, con `main.js`, `manifest.json` e `styles.css` allegati come file, non solo nel sorgente.
-6. **Pull request su `obsidianmd/obsidian-releases`** — aggiunta della voce in `community-plugins.json`. Da lì parte la revisione, che può chiedere modifiche.
+6. ~~**Pull request su `obsidianmd/obsidian-releases`**~~ — **il processo è cambiato**: su quel repository le pull request sono disabilitate e `community-plugins.json` non si modifica più a mano.
+
+   La submission passa dal **developer dashboard su https://community.obsidian.md/**: si accede con l'account Obsidian, si collega l'account GitHub e si indica il repository come URL completo (`https://github.com/owner/repo`, senza `.git` e senza barra finale). La revisione è **automatica e immediata** — verifica developer policies, buone pratiche del codice e vulnerabilità note — e l'esito arriva in pochi minuti.
+
+   Conseguenza da non dimenticare: **ogni nuova versione viene ri-scansionata**, e se un aggiornamento non passa il plugin viene **rimosso dalla ricerca entro 24 ore**. Non è più «passata la revisione, dentro per sempre»: le release affrettate si pagano.
+
+   Dal dashboard si può poi rivendicare il plugin e curarne titolo, descrizione e screenshot.
 7. **`isDesktopOnly`** — oggi `true`. Va rimesso a `false` solo dopo aver davvero provato il plugin su mobile.
 
 ## Prossima versione (dopo la pubblicazione)
