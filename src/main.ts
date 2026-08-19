@@ -29,6 +29,10 @@ import {
   showErrorNotification,
   showInfoNotification,
 } from "./ui/user-notifications";
+import {
+  TRANSLATION_VIEW_TYPE,
+  TranslationView,
+} from "./ui/translation-view";
 import { AbortError } from "./utils/abort-error";
 import { LONG_TEXT_THRESHOLD, PLUGIN_NAME } from "./utils/constants";
 import { nextFrame } from "./utils/next-frame";
@@ -48,6 +52,10 @@ export default class TranslatePlugin extends Plugin {
     logger.debug("Loading translate plugin");
     await this.loadSettings();
     this.addSettingTab(new SettingTab(this.app, this));
+    this.registerView(
+      TRANSLATION_VIEW_TYPE,
+      (leaf) => new TranslationView(leaf),
+    );
     this.registerCommands();
     this.registerEditorMenu();
     this.rebuildLlmClient();
@@ -140,15 +148,23 @@ export default class TranslatePlugin extends Plugin {
         this.openProviderSwitcher();
       },
     });
-    this.addCommand({
-      id: "cancel-translation",
-      name: "Cancel running translation",
-      checkCallback: (checking) => {
-        if (!this.abortController) return false;
-        if (!checking) this.abortController.abort();
-        return true;
-      },
-    });
+  }
+
+  /** Opens the review panel, reusing the existing one when there is one. */
+  private async activateTranslationView(): Promise<TranslationView | undefined> {
+    const { workspace } = this.app;
+    let leaf = workspace.getLeavesOfType(TRANSLATION_VIEW_TYPE)[0];
+    if (!leaf) {
+      const rightLeaf = workspace.getRightLeaf(false);
+      if (!rightLeaf) return undefined;
+      await rightLeaf.setViewState({
+        type: TRANSLATION_VIEW_TYPE,
+        active: true,
+      });
+      leaf = rightLeaf;
+    }
+    await workspace.revealLeaf(leaf);
+    return leaf.view instanceof TranslationView ? leaf.view : undefined;
   }
 
   private openProviderSwitcher(): void {
@@ -178,10 +194,11 @@ export default class TranslatePlugin extends Plugin {
     const originalFullText = editor.getValue();
 
     await this.runStream({
-      editor,
       userContent: selection,
-      originalFullText,
       loaderMessage: `${PLUGIN_NAME}: translating selection...`,
+      onAbort: () => {
+        editor.setValue(originalFullText);
+      },
       writeChunk: (text) => {
         this.writeAt(editor, fromCursor, text);
       },
@@ -195,10 +212,20 @@ export default class TranslatePlugin extends Plugin {
     });
   }
 
+  /**
+   * Translates the body of the active note into the review panel. The note is
+   * left untouched: it is the panel's "Insert" button that writes to it.
+   */
   private async translateDocument(editor: Editor): Promise<void> {
     if (!this.ensureClient()) return;
+    const file = this.app.workspace.getActiveFile();
+    if (!file) {
+      showErrorNotification({ title: "No note is open" });
+      return;
+    }
+
     const fullText = editor.getValue();
-    const { frontmatter, body, bodyStartOffset } = extractBody(fullText);
+    const { frontmatter, body } = extractBody(fullText);
 
     if (!body.trim()) {
       showErrorNotification({ title: "The note body is empty, nothing to translate" });
@@ -210,40 +237,54 @@ export default class TranslatePlugin extends Plugin {
       if (!ok) return;
     }
 
-    const bodyStartPos = offsetToPos(fullText, bodyStartOffset);
+    const view = await this.activateTranslationView();
+    if (!view) {
+      showErrorNotification({
+        title: "Could not open the translation panel",
+        suggestions: ["Make sure the right sidebar is available"],
+      });
+      return;
+    }
+
+    view.beginTranslation({
+      filePath: file.path,
+      frontmatter,
+      originalContent: fullText,
+    });
 
     await this.runStream({
-      editor,
       userContent: body,
-      originalFullText: fullText,
       loaderMessage: `${PLUGIN_NAME}: translating full note...`,
       writeChunk: (text) => {
-        editor.setValue(frontmatter + text);
+        view.setText(text);
       },
       finalize: (text) => {
-        editor.setValue(frontmatter + text);
-        editor.setSelection(
-          bodyStartPos,
-          offsetToPos(frontmatter + text, (frontmatter + text).length),
-        );
+        view.setText(text);
+        view.completeTranslation();
+      },
+      onAbort: () => {
+        view.cancelTranslation();
+      },
+      onError: () => {
+        view.failTranslation();
       },
     });
   }
 
   private async runStream({
-    editor,
     userContent,
-    originalFullText,
     loaderMessage,
     writeChunk,
     finalize,
+    onAbort,
+    onError,
   }: {
-    editor: Editor;
     userContent: string;
-    originalFullText: string;
     loaderMessage: string;
     writeChunk: (text: string) => void;
     finalize: (text: string) => void;
+    onAbort: () => void;
+    onError?: () => void;
   }): Promise<void> {
     if (this.abortController) {
       showErrorNotification({
@@ -281,8 +322,9 @@ export default class TranslatePlugin extends Plugin {
       // APIUserAbortError, or wrapped in an APIConnectionError when the fetch
       // adapter rejects mid-flight. The signal is the only reliable witness.
       if (abortController.signal.aborted || error instanceof AbortError) {
-        editor.setValue(originalFullText);
+        onAbort();
       } else {
+        onError?.();
         showErrorNotification(mapLlmErrorToReadable(error));
         logger.error("Translation failed", error);
       }
@@ -344,16 +386,4 @@ class ProviderSwitcherModal extends FuzzySuggestModal<ProviderConfig> {
 
 function incChar(cursor: EditorPosition, char: number): EditorPosition {
   return { ...cursor, ch: cursor.ch + char };
-}
-
-function offsetToPos(text: string, offset: number): EditorPosition {
-  let line = 0;
-  let lastNewline = -1;
-  for (let i = 0; i < offset && i < text.length; i++) {
-    if (text[i] === "\n") {
-      line++;
-      lastNewline = i;
-    }
-  }
-  return { line, ch: offset - lastNewline - 1 };
 }

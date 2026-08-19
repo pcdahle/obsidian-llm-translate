@@ -95,7 +95,17 @@ Conseguenze pratiche:
 
 Risolverlo richiede una `fetch` che streami davvero. `requestUrl` non lo permette; le alternative sono la `fetch` nativa (soggetta a CORS nel renderer di Obsidian) o l'API `net` di Electron. Da valutare, non banale.
 
-### 2. Annullamento: il ripristino non scattava — corretto
+### 2. Annullamento: ridimensionato
+
+> Aggiornamento 19/08/2026: il comando «Cancel running translation» è stato **rimosso**.
+> Con la traduzione della nota intera che finisce nel pannello di revisione, non c'è più
+> niente da recuperare: la nota non viene toccata. E nella pratica il comando era
+> inutilizzabile — la traduzione finisce prima che si riesca a cercarlo nella palette.
+> Resta il clic sullo spinner nella barra di stato, che serve a fermare una richiesta
+> appesa, e resta il ripristino del testo per la traduzione della **selezione**, che
+> continua a sostituire inline.
+
+
 
 L'annullamento può emergere come `AbortError` interno, come `APIUserAbortError` dell'SDK, oppure avvolto in un `APIConnectionError` quando è l'adapter a rifiutare a metà volo. `main.ts` riconosceva solo il primo caso, quindi negli altri mostrava una notifica di errore **senza ripristinare il testo originale**. Ora la condizione guarda `abortController.signal.aborted`, che è l'unico testimone affidabile.
 
@@ -103,14 +113,17 @@ Aggiunto anche il comando **«Cancel running translation»**, visibile nella pal
 
 Resta vero che, finché lo streaming non è reale, l'annullamento serve solo durante l'attesa della risposta, quando nulla è ancora stato scritto.
 
-### 3. Impossibile rivedere la traduzione prima di accettarla
+### 3. Rivedere la traduzione prima di accettarla ✅ risolto il 19/08/2026
 
-La traduzione **sovrascrive** il testo originale, quindi non c'è modo di confrontarla con la fonte. Due approcci possibili:
+Scelto l'approccio «traduzione a fronte»: `TranslationView` ([src/ui/translation-view.ts](src/ui/translation-view.ts)) è una `ItemView` registrata nel pannello destro. «Translate full note» non tocca più la nota — scrive nel pannello, dove il testo si legge accanto all'originale, si può **modificare a mano** e poi si conferma con «Insert» o si scarta con «Discard».
 
-1. **Interruttore originale / tradotto** — il testo originale resta in memoria e un pulsante alterna le due versioni nell'editor. Semplice, ma lo stato non sopravvive alla chiusura della nota, e intanto il file su disco è già stato sovrascritto.
-2. **Traduzione a fronte** — la traduzione compare in un pannello laterale destro con il suo tab, più un pulsante «inserisci» che la scrive nella nota. Richiede una `ItemView` registrata, ma **non tocca la nota** finché non si decide.
+Dettagli che contano:
 
-Il secondo approccio è più lavoro e risolve il problema alla radice; è anche l'unico che rende utile un vero streaming, perché il testo può scorrere nel pannello senza toccare il documento.
+- l'inserimento conserva il front-matter e riscrive il file con `vault.process`;
+- se la nota è cambiata mentre la si rivedeva, l'inserimento **si rifiuta** invece di sovrascrivere le modifiche più recenti;
+- la traduzione della **selezione** resta inline: per una frase la sostituzione immediata è comoda e si annulla con Ctrl+Z.
+
+Il pannello è anche il posto giusto per un eventuale streaming vero (problema 1): il testo può scorrere lì senza toccare il documento.
 
 ## Fuori ambito, per ora
 

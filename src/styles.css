@@ -3,3 +3,27 @@
   font-family: var(--font-monospace);
   min-height: 200px;
 }
+
+.llm-translate-review {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: var(--size-4-2);
+}
+
+.llm-translate-review-status {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin: 0;
+}
+
+.llm-translate-review-text {
+  flex: 1 1 auto;
+  width: 100%;
+  resize: none;
+  white-space: pre-wrap;
+}
+
+.llm-translate-hidden {
+  display: none;
+}
