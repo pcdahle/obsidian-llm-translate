@@ -1,229 +1,175 @@
-# Obsidian 翻译插件开发计划
+# Piano di sviluppo — LLM Translate (fork internazionale)
 
-## Context
+## Contesto
 
-用户需要一个 Obsidian 翻译插件，用于将剪藏的英文内容（YouTube 逐字稿、网页文章、论文）翻译成中文阅读。之前尝试魔改 Text Generator 插件但发现过于臃肿已放弃。现在基于轻量的 obsidian-llm-shortcut 精简改造，只保留 API 调用+流式输出核心，砍掉 Prompt 文件系统，新增多 Provider 管理和翻译专用逻辑。
+Questo repository è un fork di [chenyuxiaojin/obsidian-llm-translate](https://github.com/chenyuxiaojin/obsidian-llm-translate), un plugin di traduzione per Obsidian nato a sua volta come versione semplificata di `obsidian-llm-shortcut`: conserva solo il nucleo «chiamata API + output in streaming» e aggiunge la gestione multi-provider e la logica di traduzione.
 
-## 插件定位
+Il plugin fa bene due cose — tradurre la selezione e tradurre l'intera nota preservando il frontmatter YAML — ed è tra i migliori traduttori di Markdown della comunità Obsidian. Ma è **monolingua cinese**: comandi, pagina delle impostazioni, messaggi di errore, prompt predefinito e lingua di destinazione sono tutti in cinese. Per chi non legge il cinese è di fatto inutilizzabile.
 
-**三个命令：**
+Il piano originale (costruzione del plugin da zero in 7 fasi) è stato interamente eseguito: il codice esiste, compila e funziona. Questo documento lo sostituisce e descrive la milestone attuale del fork.
 
-1. **翻译选中文本** — 选中一段/一句/一个词 → AI 翻译 → 替换选中
-2. **翻译全文** — 保留 YAML frontmatter，翻译正文部分 → 流式替换
-3. **切换 API 服务商** — 命令面板快速切换当前 Provider，避免每次打开设置页
+## Obiettivo attuale — unica milestone
 
-## 关键决定（2026-04-11 确认）
+**Portare codice e interfaccia al 100% in inglese.**
 
-- **取消恢复原文**：流式开始前用 `editor.getValue()` 缓存整篇原文，用户点取消时走 `AbortError` → `editor.setValue(originalText)` 恢复。**不保留"已翻译的部分"**，整段还原。
-- **Provider 快速切换**：除设置页外，注册一个命令面板命令"切换 API 服务商"，弹出 Obsidian 原生 Suggester 列出所有已配置 Provider，选中后立刻生效。
-- **超长文本软警告**：全文翻译前检查正文字符数，超过 **20000 字符**弹原生 Modal 确认："正文较长（X 字符），可能消耗较多 tokens，是否继续？"。阈值写死在代码里，不做设置项。
+Nient'altro. Nessuna nuova funzionalità, nessuna riorganizzazione dell'architettura, nessun sistema di traduzione dell'interfaccia. Finché questa milestone non è chiusa e verificata, gli sviluppi successivi restano in attesa.
 
-## 项目位置
+Riguarda:
 
-`~/项目/自己的应用/obsidian-translate/`
+- ogni stringa che l'utente vede (comandi, menu contestuale, impostazioni, notifiche, errori, modal);
+- ogni commento e JSDoc nel sorgente;
+- i valori predefiniti (prompt di sistema, lingua di destinazione, elenco dei provider).
 
-## 文件结构
+## Fuori ambito, per ora
 
-```
-obsidian-translate/
-├── manifest.json                          # 插件元数据
-├── package.json                           # 依赖：openai SDK
-├── esbuild.ts                             # 构建配置（从 LLM Shortcut 复制）
-├── tsconfig.json                          # TypeScript 配置（从 LLM Shortcut 复制）
-├── config/
-│   └── rename-file-esbuild-plugin.ts      # esbuild 插件（复制）
-└── src/
-    ├── main.ts                            # 插件入口：2 个命令 + 流式写入编辑器
-    ├── settings.ts                        # 设置接口和默认值
-    ├── setting-tab.ts                     # 设置页 UI（中文）
-    ├── logger.ts                          # 日志（复制）
-    ├── globals.d.ts                       # 类型声明（复制）
-    │
-    ├── providers/
-    │   ├── types.ts                       # ProviderConfig, ProviderPreset 接口
-    │   └── presets.ts                     # 9 个预置 Provider
-    │
-    ├── llm/
-    │   ├── llm-client.ts                  # OpenAI SDK 流式调用（简化）
-    │   └── error-handler.ts              # 错误处理（中文化）
-    │
-    ├── translation/
-    │   ├── prompt.ts                      # 翻译系统提示词构建
-    │   ├── extract-body.ts               # YAML frontmatter 分离
-    │   ├── translate-selection.ts         # 选中翻译逻辑
-    │   └── translate-document.ts          # 全文翻译逻辑
-    │
-    ├── ui/
-    │   ├── loader-strategy.ts             # 加载指示器（复制）
-    │   ├── loading-status/                # 加载状态 UI（复制）
-    │   ├── spinner/                       # 加载动画（复制）
-    │   └── user-notifications.ts          # 通知（中文化）
-    │
-    └── utils/
-        ├── abort-error.ts                 # 中断错误（复制）
-        ├── constants.ts                   # PLUGIN_NAME 等常量
-        ├── next-frame.ts                  # requestAnimationFrame 封装
-        ├── assertions/                    # assert-exists（复制）
-        └── obsidian/
-            ├── obsidian-fetch-adapter.ts  # CORS-free fetch（复制）
-            ├── map-cursor-position-to-idx/ # 光标工具（复制）
-            ├── map-idx-to-cursor-position/ # 索引工具（复制）
-            └── trim-selection/            # 选区修剪（复制）
-```
+Elencati qui perché sono passi previsti, ma **dopo** la milestone corrente:
 
-## 从 LLM Shortcut 的取舍
+- **Sistema i18n multilingua** (file di traduzione, rilevamento della lingua di Obsidian, UI in italiano/cinese/altro). Oggi le stringhe restano scritte direttamente nel codice, in inglese.
+- **Documentazione in italiano** — `PLAN.md` e `CLAUDE.md` sono già in italiano; col tempo anche gli altri `.md` di lavoro. `README.md` e `llms.txt` restano in inglese perché rivolti al pubblico del repository.
+- **Identità del plugin per una distribuzione separata** — `manifest.json` (`id`, `author`, `authorUrl`) punta ancora all'upstream. Va cambiato solo se e quando il fork verrà pubblicato come plugin distinto.
+- **Nuove funzionalità** — glossario, traduzione a fronte, cache, supporto mobile, ecc.
 
-### 保留（复制或小改）
-| 文件 | 行数 | 说明 |
-|------|------|------|
-| `llm/llm-client.ts` | 82 | 简化：接收预构建的 messages 而非自己拼装 |
-| `ui/loader-strategy.ts` | ~80 | 原样复制，桌面/移动端加载指示 |
-| `ui/loading-status/`, `ui/spinner/` | ~60 | 原样复制 |
-| `utils/obsidian/obsidian-fetch-adapter.ts` | ~60 | 原样复制，解决 CORS |
-| `utils/obsidian/` 下的光标/选区工具 | ~100 | 原样复制 |
-| `main.ts` 中 `updateEditorContentWithResponse` | ~30 | 流式写入编辑器的核心逻辑 |
-
-### 删除（不带入新项目）
-| 文件/模块 | 说明 |
-|-----------|------|
-| `src/prompt/` 整个目录 | Prompt 文件系统、frontmatter 解析、macro 标记 |
-| `src/ui/info-modal/` | 弹窗显示模式 |
-| `src/ui/prompt-modal/` | 自定义 Prompt 输入框 |
-| `main.ts` 中命令扫描逻辑 | 文件夹递归、文件监听、动态命令注册 |
-
-### 新增
-| 文件 | 说明 |
-|------|------|
-| `providers/presets.ts` | 9 个预置 Provider（DeepSeek/OpenAI/Gemini/豆包/Kimi/千问/智谱/SiliconFlow/OpenRouter） |
-| `translation/prompt.ts` | 内置翻译提示词，支持 `{{targetLanguage}}` 变量 |
-| `translation/extract-body.ts` | 分离 YAML frontmatter 和正文 |
-| `translation/translate-selection.ts` | 选中翻译命令 |
-| `translation/translate-document.ts` | 全文翻译命令 |
-| `setting-tab.ts` | 全新设置页：Provider 管理 + 翻译设置 |
-
-## 核心设计
-
-### Provider 数据结构
-
-```typescript
-interface ProviderConfig {
-  id: string;        // 唯一标识
-  name: string;      // 显示名 "DeepSeek"
-  baseUrl: string;   // "https://api.deepseek.com/v1"
-  apiKey: string;    // 用户的 API Key
-  model: string;     // "deepseek-chat"
-}
-
-interface PluginSettings {
-  providers: ProviderConfig[];
-  activeProviderId: string;
-  targetLanguage: string;              // 默认 "中文"
-  translationSystemPrompt: string;     // 可编辑的翻译提示词
-}
-```
-
-### 预置 Provider 列表
-
-| 名称 | Base URL | 默认模型 |
-|------|----------|----------|
-| DeepSeek | `https://api.deepseek.com/v1` | deepseek-chat |
-| OpenAI | `https://api.openai.com/v1` | gpt-4o-mini |
-| Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` | gemini-2.0-flash |
-| 豆包 | `https://ark.cn-beijing.volces.com/api/v3` | （需用户填写） |
-| Kimi | `https://api.moonshot.cn/v1` | moonshot-v1-8k |
-| 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen-turbo |
-| 智谱 | `https://open.bigmodel.cn/api/paas/v4` | glm-4-flash |
-| SiliconFlow | `https://api.siliconflow.cn/v1` | （需用户填写） |
-| OpenRouter | `https://openrouter.ai/api/v1` | （需用户填写） |
-
-### 默认翻译提示词
+## Stato attuale del codice
 
 ```
-你是一个专业翻译引擎。请将以下内容翻译为{{targetLanguage}}。
-
-规则：
-- 保持原文的段落结构和 Markdown 格式
-- 专有名词、技术术语首次出现时保留英文原文并括号注明中文
-- 不要添加解释、总结或评论，只输出翻译结果
-- 保持原文的语气和风格
-- 数字、URL、代码片段保持不变
+src/
+├── main.ts                    # Entry point: 3 comandi, menu contestuale, scrittura in streaming, annulla/ripristina
+├── settings.ts                # Interfaccia PluginSettings + valori predefiniti + prompt di sistema
+├── setting-tab.ts             # Pagina impostazioni: gestione provider + impostazioni di traduzione
+├── logger.ts                  # Log
+├── globals.d.ts               # Dichiarazioni di tipo
+├── styles.css                 # Stili del plugin
+├── providers/
+│   ├── types.ts               # ProviderConfig, ProviderPreset
+│   └── presets.ts             # Elenco dei provider predefiniti
+├── llm/
+│   ├── llm-client.ts          # Chiamata in streaming con l'SDK OpenAI
+│   └── error-handler.ts       # Mappatura degli errori API in messaggi leggibili
+├── translation/
+│   ├── prompt.ts              # Costruzione del system prompt ({{targetLanguage}})
+│   ├── extract-body.ts        # Separazione frontmatter YAML / corpo del testo
+│   └── long-text-confirm.ts   # Modal di conferma oltre i 20.000 caratteri
+├── ui/
+│   ├── loader-strategy.ts     # Indicatore di caricamento desktop/mobile
+│   ├── loading-status/        # Stato di caricamento nella status bar (con annulla)
+│   ├── spinner/               # Animazione di caricamento
+│   └── user-notifications.ts  # Notifiche Notice
+└── utils/
+    ├── abort-error.ts, constants.ts, next-frame.ts
+    └── obsidian-fetch-adapter.ts  # fetch via requestUrl, evita i problemi di CORS
 ```
 
-### 设置页布局（中文 UI）
+### Inventario del cinese residuo
 
-**第一部分：API 服务商**
-- 已添加的 Provider 列表，每个可展开编辑（名称/URL/Key/Model）
-- 当前激活的 Provider 有标记
-- "添加服务商"按钮 → 下拉选预置或自定义
-- "删除"按钮
+Rilevato con `grep -rnP '\p{Han}' src/`:
 
-**第二部分：翻译设置**
-- 目标语言（文本框，默认"中文"）
-- 翻译提示词（大文本框，可编辑，附"恢复默认"按钮）
+| File | Cosa contiene | Righe |
+|------|---------------|-------|
+| `llm/error-handler.ts` | Titoli, messaggi e suggerimenti di tutti gli errori API | 27 |
+| `main.ts` | Nomi dei 3 comandi, voci del menu contestuale, notifiche, messaggi del loader, testo del Suggester | 19 |
+| `setting-tab.ts` | Ogni `setName` / `setDesc` / `setButtonText` / `setPlaceholder` | 17 |
+| `settings.ts` | `DEFAULT_TRANSLATION_SYSTEM_PROMPT` e `targetLanguage: "中文"` | 8 |
+| `providers/presets.ts` | 4 nomi di provider: 豆包, 通义千问, 智谱, 自定义 | 4 |
+| `translation/long-text-confirm.ts` | Titolo, corpo e pulsanti della modal di conferma | 4 |
+| `ui/loading-status/loading-status.ts` | `CANCEL_HINT = "点击取消"` | 1 |
+| `ui/user-notifications.ts` | Etichetta `"💡 建议："` | 1 |
+| `utils/constants.ts` | `PLUGIN_NAME = "翻译"` | 1 |
+| `translation/extract-body.ts`, `utils/obsidian-fetch-adapter.ts` | Solo commenti JSDoc | 4 |
 
-### API 调用方式
+Punti accertati che semplificano il lavoro:
 
-用 `system` 角色（不用 `developer`），兼容所有 OpenAI 兼容 API：
-```
-messages: [
-  { role: "system", content: "翻译提示词（targetLanguage 已替换）" },
-  { role: "user", content: "要翻译的文本" }
-]
-```
+- Gli `id` dei comandi (`translate-selection`, `translate-document`, `switch-provider`) sono **già in inglese**: cambiare i `name` non rompe né le hotkey configurate né i link `obsidian://`.
+- `README.md`, `llms.txt` e `manifest.json` sono **già in inglese**: nessun intervento.
+- Nessun carattere cinese nei file CSS.
 
-### 全文翻译：frontmatter 处理
+## Decisioni
 
-检测 `---` 分隔的 YAML frontmatter → 只选中正文部分 → 翻译替换 → frontmatter 不动。
+| Tema | Decisione | Motivo |
+|------|-----------|--------|
+| Lingua del codice e dell'UI | Inglese al 100%: stringhe utente, commenti, JSDoc, prompt predefinito | Base comune per qualsiasi utente e per un eventuale i18n futuro |
+| Lingua della documentazione | `PLAN.md` e `CLAUDE.md` in italiano; `README.md` e `llms.txt` in inglese | I primi sono documenti di lavoro, i secondi si rivolgono al pubblico del repo |
+| `targetLanguage` predefinito | `"English"` (oggi `"中文"`) | Default neutro; resta un campo di testo libero, chi vuole l'italiano scrive «Italian» |
+| Preset dei provider | Solo endpoint **globali**, incluse le aziende cinesi che ne offrono uno (DeepSeek, Kimi, Qwen, Z.AI). Esclusi Doubao (solo Cina) e SiliconFlow (dominio `.cn`, piattaforma orientata al mercato cinese) | Un utente fuori dalla Cina non riesce a registrarsi né a pagare sugli endpoint domestici |
+| Migrazione delle impostazioni | Nessuna | È un fork nuovo, nessuna installazione esistente da preservare |
+| Stile delle stringhe | Convenzioni ufficiali Obsidian: sentence case per comandi e impostazioni, nessun prefisso col nome del plugin, nessun heading «Settings» | Requisito per l'eventuale invio alla directory dei plugin della comunità; `eslint-plugin-obsidianmd` è già configurato |
 
-### 长文本策略
+## Fasi di implementazione
 
-不分段。3000 词 ≈ 5000 tokens，远小于主流模型 128K 上下文。一次请求 + 流式输出 + 可中断。
+### Fase 1 — Stringhe di base
 
-超过 20000 字符时弹 Modal 软警告，确认后才发请求。
+1. `utils/constants.ts`: `PLUGIN_NAME` → `"LLM Translate"` (compare nei messaggi del loader e nelle notifiche).
+2. `ui/loading-status/loading-status.ts`: `CANCEL_HINT` → `"Click to cancel"`.
+3. `ui/user-notifications.ts`: etichetta dei suggerimenti → `"💡 Suggestions:"`.
 
-## 实施步骤
+### Fase 2 — Comandi e menu contestuale (`main.ts`)
 
-### Phase 1：项目骨架
-1. 创建 `~/项目/自己的应用/obsidian-translate/` 目录
-2. 复制构建配置：`esbuild.ts`、`tsconfig.json`、`config/`
-3. 创建 `package.json`、`manifest.json`
-4. `npm install`
+4. Nomi dei comandi, **`id` invariati**:
+   - `translate-selection` → `Translate selection`
+   - `translate-document` → `Translate full note (preserve frontmatter)`
+   - `switch-provider` → `Switch API provider`
+5. Voci del menu contestuale dell'editor allineate ai nomi dei comandi.
+6. Notifiche e messaggi del loader in inglese: nessun provider configurato, nessuna selezione, corpo del testo vuoto, traduzione già in corso, provider attivato, errore di traduzione.
+7. Suggester di cambio provider: placeholder e riga «modello non impostato» in inglese.
 
-### Phase 2：复制工具层
-5. 复制 `utils/` 下所有工具文件（fetch adapter、光标工具、abort-error 等）
-6. 复制 `ui/` 下加载指示器（loader-strategy、loading-status、spinner）
-7. 创建 `utils/constants.ts`、`utils/next-frame.ts`
-8. 复制 `logger.ts`、`globals.d.ts`
+### Fase 3 — Pagina delle impostazioni (`setting-tab.ts`)
 
-### Phase 3：Provider 和设置
-9. 创建 `providers/types.ts` 和 `providers/presets.ts`
-10. 创建 `settings.ts`（接口 + 默认值）
-11. 创建 `setting-tab.ts`（中文设置页）
+8. Sezione provider: nome/descrizione del selettore «Add provider», stato vuoto, pulsanti «Set as active» / «Delete», campi «Display name», «Base URL», «API key», «Model», etichetta «(no base URL)».
+9. Sezione traduzione: heading, «Target language» (con descrizione del segnaposto `{{targetLanguage}}`), «Translation prompt», tooltip «Restore default prompt».
+10. Tutto in sentence case, secondo le convenzioni Obsidian.
 
-### Phase 4：LLM 层
-12. 简化复制 `llm/llm-client.ts`（接收预构建 messages）
-13. 中文化 `llm/error-handler.ts`
+### Fase 4 — Messaggi di errore (`llm/error-handler.ts`)
 
-### Phase 5：翻译逻辑
-14. 创建 `translation/prompt.ts`（提示词构建）
-15. 创建 `translation/extract-body.ts`（frontmatter 分离）
-16. 创建 `translation/translate-selection.ts`
-17. 创建 `translation/translate-document.ts`
+11. Riscrivere in inglese i 6 casi gestiti (autenticazione, rate limit, modello inesistente, credito esaurito, parametri della richiesta, permessi) più il fallback «errore sconosciuto», mantenendo la struttura titolo / messaggio / suggerimenti e le emoji esistenti.
+12. Nei suggerimenti, sostituire i riferimenti all'UI cinese («设置 → 翻译») con i nuovi nomi inglesi delle impostazioni.
 
-### Phase 6：主入口
-18. 创建 `main.ts`（注册 3 个命令 + 流式写入逻辑 + AbortError 时 editor.setValue 恢复）
+### Fase 5 — Default di traduzione (`settings.ts`)
 
-### Phase 7：构建测试
-19. `npm run build` 构建
-20. 复制产物到 Obsidian 插件目录测试
-21. 用之前的 YouTube 逐字稿文件实测全文翻译
+13. `targetLanguage: "English"`.
+14. `DEFAULT_TRANSLATION_SYSTEM_PROMPT` riscritto in inglese, mantenendo il segnaposto `{{targetLanguage}}` e le stesse regole:
+    - conservare struttura dei paragrafi e formattazione Markdown;
+    - alla prima occorrenza di nomi propri e termini tecnici, conservare il termine originale e affiancare la traduzione tra parentesi — regola resa **generica** (oggi è specifica «inglese → cinese»);
+    - nessuna spiegazione, riassunto o commento: solo la traduzione;
+    - conservare tono e stile dell'originale;
+    - lasciare invariati numeri, URL e frammenti di codice.
 
-## 验证方式
+### Fase 6 — Preset dei provider (`providers/presets.ts`)
 
-1. **构建通过**：`npm run build` 无错误，产出 `main.js` + `manifest.json`
-2. **安装验证**：复制到 Obsidian plugins 目录，启用后设置页正常显示
-3. **Provider 配置**：添加一个 Provider（如 DeepSeek），填入 Key，验证保存
-4. **选中翻译测试**：选中一段英文 → 命令面板执行"翻译选中文本" → 流式输出中文替换
-5. **全文翻译测试**：打开 `Planning In Claude Code Just Got a Huge Upgrade.md` → 执行"翻译全文" → frontmatter 不动，正文翻译成中文
-6. **中断测试**：全文翻译中点击取消 → 恢复原文
-7. **Provider 切换**：添加第二个 Provider，切换后翻译正常
+15. Sostituire l'elenco con i soli provider ad accesso globale:
+
+| Nome | Base URL | Modello predefinito |
+|------|----------|---------------------|
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` (da rivedere) |
+| Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.0-flash` |
+| Kimi (Moonshot) | `https://api.moonshot.ai/v1` | da verificare |
+| Qwen | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1` | `qwen-turbo` |
+| Z.AI (GLM) | `https://api.z.ai/api/paas/v4` | da verificare |
+| OpenRouter | `https://openrouter.ai/api/v1` | (vuoto) |
+| Custom | (vuoto) | (vuoto) |
+
+16. Rimossi: 豆包 (Doubao, endpoint `ark.cn-beijing.volces.com`, solo Cina) e SiliconFlow (`api.siliconflow.cn`). Chi li usa può sempre configurarli con «Custom».
+17. `自定义` → `Custom`.
+
+> Endpoint e nomi dei modelli vanno riverificati sulla documentazione ufficiale al momento dell'implementazione: Kimi e Z.AI hanno endpoint distinti per Cina e resto del mondo, e i modelli disponibili su quello internazionale possono avere nomi diversi. Possibili aggiunte future — Anthropic e Mistral hanno endpoint compatibili con OpenAI — restano idee, non lavoro pianificato.
+
+### Fase 7 — Commenti, verifica e allineamento della documentazione
+
+18. Tradurre in inglese i JSDoc cinesi rimasti (`translation/extract-body.ts`, `utils/obsidian-fetch-adapter.ts`) e ogni commento intercettato durante le fasi precedenti.
+19. `npm run check` (TypeScript), `npm run lint` (ESLint + `eslint-plugin-obsidianmd`), `npm run build`.
+20. Controllo finale: `grep -rnP '\p{Han}' src/` non deve restituire nulla.
+21. Allineare `CLAUDE.md`: la riga «Chinese UI — da eliminare» e l'elenco dei provider non sono più validi dopo questa milestone.
+
+## Verifica della milestone
+
+Criteri di accettazione, da soddisfare tutti:
+
+1. **Build pulita** — `npm run check`, `npm run lint` e `npm run build` senza errori; prodotti `main.js`, `manifest.json`, `styles.css`.
+2. **Zero cinese nel sorgente** — `grep -rnP '\p{Han}' src/` non restituisce risultati.
+3. **Installazione** — artefatti copiati in `~/Documenti/Obsidian/tutorial-obsidian/.obsidian/plugins/llm-translate`, plugin attivato senza errori in console.
+4. **Impostazioni** — la pagina si apre interamente in inglese; si aggiunge un provider da preset, si inseriscono API key e modello, il valore si salva e resta dopo il riavvio.
+5. **Traduzione della selezione** — selezione di un paragrafo → comando dalla palette e dal menu contestuale → output in streaming che sostituisce il testo, con la lingua di destinazione predefinita «English».
+6. **Traduzione dell'intera nota** — su una nota con frontmatter: il frontmatter resta intatto, il corpo viene tradotto; oltre i 20.000 caratteri compare la modal di conferma in inglese.
+7. **Annullamento** — clic sull'indicatore di caricamento durante lo streaming → testo originale ripristinato integralmente.
+8. **Cambio provider** — con due provider configurati, il comando di switch mostra l'elenco in inglese e la traduzione successiva usa il provider selezionato.
+9. **Errori leggibili** — con una API key volutamente errata, la notifica d'errore appare in inglese, con titolo e suggerimenti coerenti con i nomi delle impostazioni.
+10. **Nessuna regressione sulle hotkey** — una hotkey assegnata prima delle modifiche continua a funzionare (gli `id` dei comandi non cambiano).
