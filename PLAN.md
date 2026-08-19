@@ -27,7 +27,22 @@ Elencati qui perché sono passi previsti, ma **dopo** la milestone corrente:
 - **Sistema i18n multilingua** (file di traduzione, rilevamento della lingua di Obsidian, UI in italiano/cinese/altro). Oggi le stringhe restano scritte direttamente nel codice, in inglese.
 - **Documentazione in italiano** — `PLAN.md` e `CLAUDE.md` sono già in italiano; col tempo anche gli altri `.md` di lavoro. `README.md` e `llms.txt` restano in inglese perché rivolti al pubblico del repository.
 - **Identità del plugin per una distribuzione separata** — `manifest.json` (`id`, `author`, `authorUrl`) punta ancora all'upstream. Va cambiato solo se e quando il fork verrà pubblicato come plugin distinto.
-- **Nuove funzionalità** — glossario, traduzione a fronte, cache, supporto mobile, ecc.
+- **Nuove funzionalità** — glossario, cache, supporto mobile, ecc.
+
+### Candidata alla prossima milestone: rivedere la traduzione prima di accettarla
+
+Emersa dai test manuali del 19/08/2026: oggi la traduzione **sovrascrive** il testo
+originale, quindi non c'è modo di confrontarla con la fonte per verificarla. Due
+approcci possibili, da scegliere:
+
+1. **Interruttore originale / tradotto** — il testo originale resta in memoria e un
+   pulsante alterna le due versioni nell'editor.
+2. **Traduzione a fronte** — la traduzione compare in un pannello laterale destro
+   con il suo tab, più un pulsante «inserisci» che la scrive nella nota.
+
+Il secondo approccio è più invasivo (richiede una `ItemView` registrata) ma non tocca
+la nota finché l'utente non decide; il primo è più semplice ma va ripensato per
+sopravvivere alla chiusura della nota.
 
 ## Stato attuale del codice
 

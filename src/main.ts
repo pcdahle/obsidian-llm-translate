@@ -70,11 +70,20 @@ export default class TranslatePlugin extends Plugin {
         }
         menu.addItem((item) =>
           item
-            .setTitle("Translate full note (preserve frontmatter)")
+            .setTitle("Translate full note (preserve front-matter)")
             .setIcon("book-open-text")
             .setSection("selection")
             .onClick(() => {
               void this.translateDocument(editor);
+            }),
+        );
+        menu.addItem((item) =>
+          item
+            .setTitle("Switch API provider")
+            .setIcon("arrow-left-right")
+            .setSection("selection")
+            .onClick(() => {
+              this.openProviderSwitcher();
             }),
         );
       }),
@@ -119,7 +128,7 @@ export default class TranslatePlugin extends Plugin {
     });
     this.addCommand({
       id: "translate-document",
-      name: "Translate full note (preserve frontmatter)",
+      name: "Translate full note (preserve front-matter)",
       editorCallback: (editor) => {
         void this.translateDocument(editor);
       },
