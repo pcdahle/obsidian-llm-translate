@@ -1,5 +1,10 @@
 import type { ProviderPreset } from "./types";
 
+/**
+ * Providers reachable worldwide, with their international endpoints.
+ * China-only endpoints are left out on purpose: users outside China
+ * cannot sign up for them. They can still be added through "Custom".
+ */
 export const PROVIDER_PRESETS: ProviderPreset[] = [
   {
     name: "DeepSeek",
@@ -9,37 +14,27 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
   {
     name: "OpenAI",
     baseUrl: "https://api.openai.com/v1",
-    defaultModel: "gpt-4o-mini",
+    defaultModel: "gpt-5.4-mini",
   },
   {
     name: "Gemini",
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
-    defaultModel: "gemini-2.0-flash",
+    defaultModel: "gemini-3.5-flash-lite",
   },
   {
-    name: "豆包",
-    baseUrl: "https://ark.cn-beijing.volces.com/api/v3",
-    defaultModel: "",
+    name: "Kimi (Moonshot)",
+    baseUrl: "https://api.moonshot.ai/v1",
+    defaultModel: "kimi-k2.6",
   },
   {
-    name: "Kimi",
-    baseUrl: "https://api.moonshot.cn/v1",
-    defaultModel: "moonshot-v1-8k",
-  },
-  {
-    name: "通义千问",
-    baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    name: "Qwen",
+    baseUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
     defaultModel: "qwen-turbo",
   },
   {
-    name: "智谱",
-    baseUrl: "https://open.bigmodel.cn/api/paas/v4",
-    defaultModel: "glm-4-flash",
-  },
-  {
-    name: "SiliconFlow",
-    baseUrl: "https://api.siliconflow.cn/v1",
-    defaultModel: "",
+    name: "Z.AI (GLM)",
+    baseUrl: "https://api.z.ai/api/paas/v4",
+    defaultModel: "glm-4.7-flash",
   },
   {
     name: "OpenRouter",
@@ -47,7 +42,7 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
     defaultModel: "",
   },
   {
-    name: "自定义",
+    name: "Custom",
     baseUrl: "",
     defaultModel: "",
   },

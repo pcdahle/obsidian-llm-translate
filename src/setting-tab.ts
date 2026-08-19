@@ -17,10 +17,10 @@ export class SettingTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName("添加服务商")
-      .setDesc("选择一个预置服务商，或选择「自定义」手动填写。")
+      .setName("Add provider")
+      .setDesc("Pick a preset provider, or pick the custom entry to fill it in yourself.")
       .addDropdown((dropdown) => {
-        dropdown.addOption("", "— 选择一个 —");
+        dropdown.addOption("", "Select a provider…");
         for (const preset of PROVIDER_PRESETS) {
           dropdown.addOption(preset.name, preset.name);
         }
@@ -46,7 +46,7 @@ export class SettingTab extends PluginSettingTab {
 
     if (this.plugin.settings.providers.length === 0) {
       containerEl.createEl("p", {
-        text: "还没有添加任何服务商。从上方下拉菜单选一个开始。",
+        text: "No providers yet. Pick one from the dropdown above to get started.",
         cls: "setting-item-description",
       });
     }
@@ -55,24 +55,24 @@ export class SettingTab extends PluginSettingTab {
       this.renderProvider(containerEl, provider);
     }
 
-    new Setting(containerEl).setName("翻译").setHeading();
+    new Setting(containerEl).setName("Translation").setHeading();
 
     new Setting(containerEl)
-      .setName("目标语言")
-      .setDesc("翻译成哪种语言。这个值会替换提示词里的 {{targetLanguage}}。")
+      .setName("Target language")
+      .setDesc("The language to translate into. This value replaces {{targetLanguage}} in the prompt.")
       .addText((text) =>
         text
-          .setPlaceholder("中文")
+          .setPlaceholder("English")
           .setValue(this.plugin.settings.targetLanguage)
           .onChange(async (value) => {
-            this.plugin.settings.targetLanguage = value || "中文";
+            this.plugin.settings.targetLanguage = value || "English";
             await this.plugin.saveSettings();
           }),
       );
 
     new Setting(containerEl)
-      .setName("翻译提示词")
-      .setDesc("发送给 AI 的 system 提示词。支持 {{targetLanguage}} 占位符。")
+      .setName("Translation prompt")
+      .setDesc("System prompt sent to the model. Supports the {{targetLanguage}} placeholder.")
       .addTextArea((ta) => {
         ta.setValue(this.plugin.settings.translationSystemPrompt)
           .setPlaceholder(DEFAULT_TRANSLATION_SYSTEM_PROMPT)
@@ -86,7 +86,7 @@ export class SettingTab extends PluginSettingTab {
       .addExtraButton((btn) =>
         btn
           .setIcon("rotate-ccw")
-          .setTooltip("恢复默认提示词")
+          .setTooltip("Restore default prompt")
           .onClick(async () => {
             this.plugin.settings.translationSystemPrompt =
               DEFAULT_TRANSLATION_SYSTEM_PROMPT;
@@ -104,12 +104,12 @@ export class SettingTab extends PluginSettingTab {
 
     const header = new Setting(containerEl)
       .setName(`${isActive ? "✅ " : ""}${provider.name}`)
-      .setDesc(provider.baseUrl || "（未填 Base URL）");
+      .setDesc(provider.baseUrl || "(no base URL set)");
 
     if (!isActive) {
       header.addButton((btn) =>
         btn
-          .setButtonText("设为当前")
+          .setButtonText("Set as active")
           .onClick(async () => {
             this.plugin.settings.activeProviderId = provider.id;
             await this.plugin.saveSettings();
@@ -120,7 +120,7 @@ export class SettingTab extends PluginSettingTab {
 
     header.addButton((btn) =>
       btn
-        .setButtonText("删除")
+        .setButtonText("Delete")
         .setWarning()
         .onClick(async () => {
           this.plugin.settings.providers =
@@ -135,7 +135,7 @@ export class SettingTab extends PluginSettingTab {
     );
 
     new Setting(containerEl)
-      .setName("显示名")
+      .setName("Display name")
       .addText((text) =>
         text.setValue(provider.name).onChange(async (value) => {
           provider.name = value;
@@ -168,7 +168,7 @@ export class SettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName("模型名")
+      .setName("Model name")
       .addText((text) =>
         text
           .setValue(provider.model)

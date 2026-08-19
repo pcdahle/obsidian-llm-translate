@@ -17,11 +17,11 @@ export function showErrorNotification(
     ?.map((suggestion) => withSeparator(`• ${suggestion}`, NEWLINE_SYMBOL))
     .join("");
 
-  let message = withSeparator(`🤖 ${PLUGIN_NAME}：`, TWO_LINE_SEP);
+  let message = withSeparator(`🤖 ${PLUGIN_NAME}:`, TWO_LINE_SEP);
   message += withSeparator(options.title, TWO_LINE_SEP);
   message += withSeparator(options.message, TWO_LINE_SEP);
   if (suggestionsText) {
-    message += withSeparator("💡 建议：", TWO_LINE_SEP);
+    message += withSeparator("💡 Suggestions:", TWO_LINE_SEP);
     message += suggestionsText;
   }
 
@@ -29,7 +29,7 @@ export function showErrorNotification(
 }
 
 export function showInfoNotification(message: string, timeout: number = 3000) {
-  new Notice(`${PLUGIN_NAME}：${message}`, timeout);
+  new Notice(`${PLUGIN_NAME}: ${message}`, timeout);
 }
 
 function withSeparator(text: string | undefined, separator: string): string {

@@ -136,16 +136,16 @@ Punti accertati che semplificano il lavoro:
 
 15. Sostituire l'elenco con i soli provider ad accesso globale:
 
-| Nome | Base URL | Modello predefinito |
-|------|----------|---------------------|
-| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
-| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` (da rivedere) |
-| Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.0-flash` |
-| Kimi (Moonshot) | `https://api.moonshot.ai/v1` | da verificare |
-| Qwen | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1` | `qwen-turbo` |
-| Z.AI (GLM) | `https://api.z.ai/api/paas/v4` | da verificare |
-| OpenRouter | `https://openrouter.ai/api/v1` | (vuoto) |
-| Custom | (vuoto) | (vuoto) |
+| Nome | Base URL | Modello predefinito | Affidabilità del default |
+|------|----------|---------------------|--------------------------|
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` | alta (alias stabile) |
+| OpenAI | `https://api.openai.com/v1` | `gpt-5.4-mini` | media (nome commerciale «GPT-5.4 Mini», id da confermare) |
+| Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-3.5-flash-lite` | media |
+| Kimi (Moonshot) | `https://api.moonshot.ai/v1` | `kimi-k2.6` | media (la serie `moonshot-v1` chiude il 31/08/2026) |
+| Qwen | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1` | `qwen-turbo` | alta (alias stabile) |
+| Z.AI (GLM) | `https://api.z.ai/api/paas/v4` | `glm-4.7-flash` | alta (modello gratuito) |
+| OpenRouter | `https://openrouter.ai/api/v1` | (vuoto) | — |
+| Custom | (vuoto) | (vuoto) | — |
 
 16. Rimossi: 豆包 (Doubao, endpoint `ark.cn-beijing.volces.com`, solo Cina) e SiliconFlow (`api.siliconflow.cn`). Chi li usa può sempre configurarli con «Custom».
 17. `自定义` → `Custom`.
@@ -156,7 +156,7 @@ Punti accertati che semplificano il lavoro:
 
 18. Tradurre in inglese i JSDoc cinesi rimasti (`translation/extract-body.ts`, `utils/obsidian-fetch-adapter.ts`) e ogni commento intercettato durante le fasi precedenti.
 19. `npm run check` (TypeScript), `npm run lint` (ESLint + `eslint-plugin-obsidianmd`), `npm run build`.
-20. Controllo finale: `grep -rnP '\p{Han}' src/` non deve restituire nulla.
+20. Controllo finale: `grep -rnP '[\x{3000}-\x{303F}\x{4E00}-\x{9FFF}\x{FF00}-\x{FFEF}]' src/` non deve restituire nulla. Da preferire a `\p{Han}`, che in questo PCRE dà un falso positivo su `·` (U+00B7, middle dot latino usato come separatore nel Suggester).
 21. Allineare `CLAUDE.md`: la riga «Chinese UI — da eliminare» e l'elenco dei provider non sono più validi dopo questa milestone.
 
 ## Verifica della milestone
@@ -164,7 +164,7 @@ Punti accertati che semplificano il lavoro:
 Criteri di accettazione, da soddisfare tutti:
 
 1. **Build pulita** — `npm run check`, `npm run lint` e `npm run build` senza errori; prodotti `main.js`, `manifest.json`, `styles.css`.
-2. **Zero cinese nel sorgente** — `grep -rnP '\p{Han}' src/` non restituisce risultati.
+2. **Zero cinese nel sorgente** — `grep -rnP '[\x{3000}-\x{303F}\x{4E00}-\x{9FFF}\x{FF00}-\x{FFEF}]' src/` non restituisce risultati (ideogrammi, punteggiatura CJK e forme a larghezza intera).
 3. **Installazione** — artefatti copiati in `~/Documenti/Obsidian/tutorial-obsidian/.obsidian/plugins/llm-translate`, plugin attivato senza errori in console.
 4. **Impostazioni** — la pagina si apre interamente in inglese; si aggiunge un provider da preset, si inseriscono API key e modello, il valore si salva e resta dopo il riavvio.
 5. **Traduzione della selezione** — selezione di un paragrafo → comando dalla palette e dal menu contestuale → output in streaming che sostituisce il testo, con la lingua di destinazione predefinita «English».

@@ -60,7 +60,7 @@ export default class TranslatePlugin extends Plugin {
         if (hasSelection) {
           menu.addItem((item) =>
             item
-              .setTitle("翻译选中文本")
+              .setTitle("Translate selection")
               .setIcon("languages")
               .setSection("selection")
               .onClick(() => {
@@ -70,7 +70,7 @@ export default class TranslatePlugin extends Plugin {
         }
         menu.addItem((item) =>
           item
-            .setTitle("翻译全文（保留 frontmatter）")
+            .setTitle("Translate full note (preserve frontmatter)")
             .setIcon("book-open-text")
             .setSection("selection")
             .onClick(() => {
@@ -112,21 +112,21 @@ export default class TranslatePlugin extends Plugin {
   private registerCommands(): void {
     this.addCommand({
       id: "translate-selection",
-      name: "翻译选中文本",
+      name: "Translate selection",
       editorCallback: (editor) => {
         void this.translateSelection(editor);
       },
     });
     this.addCommand({
       id: "translate-document",
-      name: "翻译全文（保留 frontmatter）",
+      name: "Translate full note (preserve frontmatter)",
       editorCallback: (editor) => {
         void this.translateDocument(editor);
       },
     });
     this.addCommand({
       id: "switch-provider",
-      name: "切换 API 服务商",
+      name: "Switch API provider",
       callback: () => {
         this.openProviderSwitcher();
       },
@@ -136,15 +136,15 @@ export default class TranslatePlugin extends Plugin {
   private openProviderSwitcher(): void {
     if (this.settings.providers.length === 0) {
       showErrorNotification({
-        title: "还没有配置任何服务商",
-        suggestions: ["去「设置 → 翻译」里添加一个服务商"],
+        title: "No API provider configured yet",
+        suggestions: ["Add one in Settings → LLM Translate"],
       });
       return;
     }
     new ProviderSwitcherModal(this.app, this.settings.providers, async (picked) => {
       this.settings.activeProviderId = picked.id;
       await this.saveSettings();
-      showInfoNotification(`已切换到 ${picked.name}`);
+      showInfoNotification(`switched to ${picked.name}`);
     }).open();
   }
 
@@ -152,7 +152,7 @@ export default class TranslatePlugin extends Plugin {
     if (!this.ensureClient()) return;
     const selection = editor.getSelection();
     if (!selection.trim()) {
-      showErrorNotification({ title: "请先选中要翻译的文本" });
+      showErrorNotification({ title: "Select the text you want to translate first" });
       return;
     }
 
@@ -163,7 +163,7 @@ export default class TranslatePlugin extends Plugin {
       editor,
       userContent: selection,
       originalFullText,
-      loaderMessage: `${PLUGIN_NAME}：翻译选中...`,
+      loaderMessage: `${PLUGIN_NAME}: translating selection...`,
       writeChunk: (text) => {
         this.writeAt(editor, fromCursor, text);
       },
@@ -183,7 +183,7 @@ export default class TranslatePlugin extends Plugin {
     const { frontmatter, body, bodyStartOffset } = extractBody(fullText);
 
     if (!body.trim()) {
-      showErrorNotification({ title: "正文为空，没有可翻译的内容" });
+      showErrorNotification({ title: "The note body is empty, nothing to translate" });
       return;
     }
 
@@ -198,7 +198,7 @@ export default class TranslatePlugin extends Plugin {
       editor,
       userContent: body,
       originalFullText: fullText,
-      loaderMessage: `${PLUGIN_NAME}：翻译全文...`,
+      loaderMessage: `${PLUGIN_NAME}: translating full note...`,
       writeChunk: (text) => {
         editor.setValue(frontmatter + text);
       },
@@ -229,8 +229,8 @@ export default class TranslatePlugin extends Plugin {
   }): Promise<void> {
     if (this.abortController) {
       showErrorNotification({
-        title: "已有翻译正在进行",
-        suggestions: ["等它跑完或点击加载指示器取消"],
+        title: "A translation is already running",
+        suggestions: ["Wait for it to finish, or click the loading indicator to cancel it"],
       });
       return;
     }
@@ -263,7 +263,7 @@ export default class TranslatePlugin extends Plugin {
         editor.setValue(originalFullText);
       } else {
         showErrorNotification(mapLlmErrorToReadable(error));
-        logger.error("翻译失败", error);
+        logger.error("Translation failed", error);
       }
     } finally {
       this.abortController = undefined;
@@ -274,9 +274,9 @@ export default class TranslatePlugin extends Plugin {
   private ensureClient(): boolean {
     if (!this.llmClient) {
       showErrorNotification({
-        title: "还没有配置可用的服务商",
+        title: "No usable API provider configured yet",
         suggestions: [
-          "去「设置 → 翻译」里添加服务商并填写 API Key 和模型名",
+          "In Settings → LLM Translate, add a provider and fill in its API key and model name",
         ],
       });
       return false;
@@ -305,7 +305,7 @@ class ProviderSwitcherModal extends FuzzySuggestModal<ProviderConfig> {
     private readonly onPick: (provider: ProviderConfig) => void | Promise<void>,
   ) {
     super(app);
-    this.setPlaceholder("选择要激活的服务商");
+    this.setPlaceholder("Pick the provider to activate");
   }
 
   override getItems(): ProviderConfig[] {
@@ -313,7 +313,7 @@ class ProviderSwitcherModal extends FuzzySuggestModal<ProviderConfig> {
   }
 
   override getItemText(item: ProviderConfig): string {
-    return `${item.name}  ·  ${item.model || "未填模型"}`;
+    return `${item.name}  ·  ${item.model || "no model set"}`;
   }
 
   override onChooseItem(item: ProviderConfig): void {

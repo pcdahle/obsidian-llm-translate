@@ -5,9 +5,10 @@ export interface DocumentParts {
 }
 
 /**
- * 将文档切分为 YAML frontmatter 和正文两部分。
- * frontmatter 保留开头 `---` 和结尾 `---\n`，body 从正文起点开始。
- * 如果没有合法的 frontmatter，frontmatter 为空，body 即整篇文档。
+ * Splits a document into its YAML frontmatter and its body.
+ * The frontmatter keeps both the opening `---` and the closing `---\n`,
+ * and the body starts right after it. When there is no valid frontmatter,
+ * frontmatter is empty and body is the whole document.
  */
 export function extractBody(content: string): DocumentParts {
   const match = content.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);

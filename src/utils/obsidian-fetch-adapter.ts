@@ -2,7 +2,8 @@ import { requestUrl } from "obsidian";
 import { AbortError } from "./abort-error";
 
 /**
- * 用 Obsidian 的 requestUrl 实现 fetch，避免 CORS 问题。
+ * A `fetch` implementation backed by Obsidian's `requestUrl`, which
+ * sidesteps CORS restrictions.
  */
 export const obsidianFetchAdapter: typeof fetch = async (url, options) => {
   if (options?.signal?.aborted) {

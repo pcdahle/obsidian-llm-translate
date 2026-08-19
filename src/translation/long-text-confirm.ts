@@ -23,22 +23,22 @@ class LongTextConfirmModal extends Modal {
 
   override onOpen(): void {
     const { contentEl } = this;
-    contentEl.createEl("h3", { text: "正文较长，确认翻译？" });
+    contentEl.createEl("h3", { text: "This note is long. Translate it anyway?" });
     contentEl.createEl("p", {
-      text: `当前正文 ${this.charCount.toLocaleString()} 字符，可能消耗较多 tokens 和时间。`,
+      text: `The body is ${this.charCount.toLocaleString()} characters long, which may take a while and use a lot of tokens.`,
     });
 
     new Setting(contentEl)
       .addButton((btn) =>
         btn
-          .setButtonText("取消")
+          .setButtonText("Cancel")
           .onClick(() => {
             this.finish(false);
           }),
       )
       .addButton((btn) =>
         btn
-          .setButtonText("继续翻译")
+          .setButtonText("Translate")
           .setCta()
           .onClick(() => {
             this.finish(true);

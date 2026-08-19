@@ -7,19 +7,19 @@ export interface PluginSettings {
   translationSystemPrompt: string;
 }
 
-export const DEFAULT_TRANSLATION_SYSTEM_PROMPT = `你是一个专业翻译引擎。请将以下内容翻译为{{targetLanguage}}。
+export const DEFAULT_TRANSLATION_SYSTEM_PROMPT = `You are a professional translation engine. Translate the following content into {{targetLanguage}}.
 
-规则：
-- 保持原文的段落结构和 Markdown 格式
-- 专有名词、技术术语首次出现时保留英文原文并括号注明中文
-- 不要添加解释、总结或评论，只输出翻译结果
-- 保持原文的语气和风格
-- 数字、URL、代码片段保持不变`;
+Rules:
+- Preserve the paragraph structure and Markdown formatting of the source
+- The first time a proper noun or technical term appears, keep it in the source language and put the translation in parentheses right after it
+- Do not add explanations, summaries or comments; output the translation only
+- Preserve the tone and register of the source
+- Leave numbers, URLs and code snippets untouched`;
 
 export const DEFAULT_SETTINGS: PluginSettings = {
   providers: [],
   activeProviderId: "",
-  targetLanguage: "中文",
+  targetLanguage: "English",
   translationSystemPrompt: DEFAULT_TRANSLATION_SYSTEM_PROMPT,
 };
 

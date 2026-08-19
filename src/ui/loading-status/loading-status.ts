@@ -7,7 +7,7 @@ import {
 } from "../spinner/spinner";
 import styles from "./loading-status.module.css";
 
-const CANCEL_HINT = "点击取消";
+const CANCEL_HINT = "Click to cancel";
 
 export function createLoadingStatusFragment(message: string): DocumentFragment {
   const fragment = createFragment();
