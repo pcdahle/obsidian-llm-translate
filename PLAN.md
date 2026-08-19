@@ -131,13 +131,23 @@ Obiettivo: il plugin diventa installabile da chiunque, dalla schermata «Communi
 
 ### Posizionamento
 
-Non è vero che sia l'unico plugin di traduzione non cinese: nella directory ci sono già **LLM Translator** (KimFischer99, LLM locali via Ollama più provider OpenAI-compatibili, centrato sulla selezione), **Translate** (Fevol, basato su servizi tipo Google e DeepL) e **Immersive Translate** (traduzione in modalità lettura).
+Nella directory esistono altri plugin di traduzione, ma nessuno copre il caso «leggo in italiano un ritaglio in inglese, dentro Obsidian».
 
-La combinazione che non si trova altrove, e che va messa in prima riga nel README, è:
+**LLM Translator** (KimFischer99) — provato e scartato: **non si può scegliere la lingua di destinazione**, il che da solo lo esclude per un lettore italiano. Ha parti di interfaccia ancora in cinese e non documentate, un pannello laterale in cui il testo va importato invece di tradurre semplicemente la selezione, e marcatori colorati che duplicano quello che altri plugin fanno meglio. Sui modelli è chiuso: un modello grande, Ollama in locale, più Google e Bing, con abbonamento e i problemi noti di Google fuori dal suo ecosistema. Avrebbe bisogno esso stesso di un fork che tolga il cinese e semplifichi.
 
-1. traduzione della **nota intera** con il front-matter YAML lasciato intatto;
-2. **revisione prima di accettare** — la nota non viene toccata finché non premi Insert;
-3. **preset multi-provider** con endpoint globali, cambiabili al volo da un comando.
+**Translate** (Fevol) — basato su servizi di traduzione classici (Google, DeepL), non su LLM: niente prompt, niente controllo sul registro e sui termini tecnici.
+
+**Immersive Translate** — traduce in modalità lettura, non produce testo tradotto nella nota.
+
+Quello che questo plugin ha e gli altri no:
+
+1. **lingua di destinazione libera**, un campo di testo: scrivi «italiano» e traduce in italiano;
+2. traduzione della **nota intera** con il front-matter YAML lasciato intatto;
+3. **revisione prima di accettare** — la nota non viene toccata finché non premi Insert;
+4. **preset multi-provider** con endpoint globali, cambiabili al volo da un comando;
+5. **prompt di sistema modificabile**, quindi il controllo su tono e terminologia.
+
+Nota per il README: questi punti vanno presentati come «cosa fa questo plugin», non come critica agli altri. Un confronto polemico nella pagina pubblica di un fork appena arrivato in directory gioca contro, e i revisori lo notano.
 
 ### Passi
 
