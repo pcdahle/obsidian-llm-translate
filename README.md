@@ -1,171 +1,162 @@
-**English** | [中文文档](README.zh-CN.md)
+# TranslateNote
 
-# LLM Translate
-
-> obsidian-llm-translate is an Obsidian plugin that translates selected text or whole notes with LLMs (DeepSeek, OpenAI, Gemini, and any OpenAI-compatible provider), with streaming output and frontmatter preservation.
+> An Obsidian plugin that translates a selection or a whole note with any OpenAI-compatible LLM, and shows the result in a side panel so you can read it against the original before it touches your note.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Obsidian](https://img.shields.io/badge/Obsidian-%3E%3D0.15.0-purple)](https://obsidian.md)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](manifest.json)
+[![Obsidian](https://img.shields.io/badge/Obsidian-%3E%3D1.13.0-purple)](https://obsidian.md)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue)](manifest.json)
 
-> **Desktop only** — `isDesktopOnly: true`. Mobile (iOS/Android) is not supported.
+> **Desktop only** — `isDesktopOnly: true`. Mobile has not been tested.
 
 ---
 
 ## Why
 
-You clip English articles or YouTube transcripts into Obsidian and want them in your reading language — without leaving the editor. LLM Translate keeps it simple: one command to translate a selection, one command to translate the whole note. YAML frontmatter is never touched.
+You clip an English article or a YouTube transcript into Obsidian and want to read it in your own language, without leaving the editor.
+
+Most translation plugins overwrite your note with the result. That leaves you with no way to check the translation against the source, and nothing to go back to if it is wrong. TranslateNote sends the translation to a side panel instead: you read it next to the original, edit it if you want, and the note changes only when you press **Insert**.
 
 ---
 
 ## Features
 
-- **Translate selection** — select text → command palette or right-click → AI translates and replaces inline
-- **Translate full note** — preserves YAML frontmatter; only the body is sent to the LLM
-- **Streaming output** — translation appears word-by-word as it arrives
-- **Cancellation** — a spinner in the status bar turns into an ✕ on hover; click to stop and restore the original text
-- **9 built-in providers + custom** — DeepSeek, OpenAI, Gemini, Doubao (豆包), Kimi, Qwen (通义千问), Zhipu (智谱), SiliconFlow, OpenRouter, or any OpenAI-compatible endpoint
-- **Quick provider switch** — a single command lets you flip between providers without opening settings
-- **Editable system prompt** — supports `{{targetLanguage}}` placeholder; reset button restores the default
-- **Long-note guard** — notes over 20,000 characters require a confirmation before translation
+- **Review before accepting** — the translation opens in a side panel with **Insert** and **Discard**. Your note is not modified until you insert.
+- **Editable result** — fix a word or a whole paragraph in the panel before inserting it.
+- **Translate a selection or the whole note** — for a full note, the YAML front-matter is left out of the translation and preserved on insert.
+- **Any target language** — a free-text field, not a fixed list. Type `Italian`, `Japanese`, `Brazilian Portuguese`; the model does the rest.
+- **Editable system prompt** — control tone and terminology, with a `{{targetLanguage}}` placeholder and a one-click restore.
+- **8 provider presets, plus custom** — every preset points at a globally reachable endpoint.
+- **Quick provider switch** — one command flips the active provider without opening settings.
+- **Safe insert** — if the note changed while you were reviewing, the insert is refused rather than overwriting your edits.
+- **Long-note guard** — notes over 20,000 characters ask for confirmation before the request goes out.
 
 ---
 
 ## Install
 
-### Manual install (current method)
+The plugin is **not yet listed** in the Obsidian Community Plugin directory. To install it manually:
 
-The plugin is **not yet listed** in the Obsidian Community Plugin directory. Install manually:
-
-1. Go to the [Releases page](https://github.com/chenyuxiaojin/obsidian-llm-translate/releases) and download the latest `main.js`, `manifest.json`, and `styles.css`.
-2. Create the folder `<your-vault>/.obsidian/plugins/llm-translate/` if it does not exist.
-3. Copy the three files into that folder.
-4. Restart Obsidian, then go to **Settings → Community plugins**, find **LLM Translate**, and enable it.
-
-> Community Plugin directory listing is planned for a future release.
+1. Download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/Dmagg/obsidian-llm-translate/releases).
+2. Create the folder `<your-vault>/.obsidian/plugins/translate-note/`.
+3. Copy the three files into it.
+4. Reload Obsidian, open **Settings → Community plugins**, find **TranslateNote** and enable it.
 
 ---
 
 ## Configuration
 
-1. Open **Settings → LLM Translate**.
-2. From the **Add provider** dropdown, pick a preset (e.g. DeepSeek).
-3. Expand the newly added provider and fill in:
-   - **API Key** — generated from the provider's dashboard
-   - **Model** — a sensible default is pre-filled; change as needed
-4. To use multiple providers, add more and use the **Set as current** button to switch.
+1. Open **Settings → TranslateNote**.
+2. Under **API providers**, press **+** and pick a preset.
+3. Open the provider that was added and fill in its **API key**. The **Base URL** and **Model name** come pre-filled; change the model if you want a different one.
+4. With more than one provider configured, open the one you want and press **Set as active** — or use the *Switch API provider* command.
 
-### Where to get API keys
+Under **Translation** you set the **target language** (any language name) and, if you want, edit the **system prompt**.
 
-| Provider | Sign-up URL | Default model |
+### Where to get an API key
+
+| Provider | Sign up | Pre-filled model |
 |---|---|---|
-| DeepSeek | platform.deepseek.com | `deepseek-chat` |
-| OpenAI | platform.openai.com | `gpt-4o-mini` |
-| Gemini | aistudio.google.com | `gemini-2.0-flash` |
-| Doubao (豆包) | console.volcengine.com/ark | *(set manually)* |
-| Kimi | platform.moonshot.cn | `moonshot-v1-8k` |
-| Qwen (通义千问) | dashscope.console.aliyun.com | `qwen-turbo` |
-| Zhipu (智谱) | bigmodel.cn | `glm-4-flash` |
-| SiliconFlow | siliconflow.cn | *(set manually)* |
-| OpenRouter | openrouter.ai | *(set manually)* |
+| DeepSeek | [platform.deepseek.com](https://platform.deepseek.com) | `deepseek-chat` |
+| OpenAI | [platform.openai.com](https://platform.openai.com) | `gpt-5.4-mini` |
+| Gemini | [aistudio.google.com](https://aistudio.google.com) | `gemini-3.5-flash-lite` |
+| Kimi (Moonshot) | [platform.moonshot.ai](https://platform.moonshot.ai) | `kimi-k2.6` |
+| Qwen | [Alibaba Cloud Model Studio](https://www.alibabacloud.com/help/en/model-studio) | `qwen-turbo` |
+| Z.AI (GLM) | [z.ai](https://z.ai) | `glm-4.7-flash` |
+| OpenRouter | [openrouter.ai](https://openrouter.ai) | *(set manually)* |
+| Custom | any OpenAI-compatible endpoint | *(set manually)* |
+
+Model names move fast. If a pre-filled model has been retired, the plugin tells you so — change the **Model name** field to a current one from your provider's model list.
 
 ---
 
 ## Usage
 
-### Three commands (Cmd/Ctrl + P)
+### Commands (Cmd/Ctrl + P)
 
-| Command | When to use |
+| Command | What it does |
 |---|---|
-| **Translate selected text** | Text is selected |
-| **Translate full note (preserve frontmatter)** | Anytime |
-| **Switch API provider** | Quickly change the active provider |
+| **Translate selection** | Translates the selected text into the panel |
+| **Translate full note (preserve front-matter)** | Translates the note body into the panel |
+| **Switch API provider** | Picks the active provider from a list |
 
-### Right-click menu
+All three are also in the editor's right-click menu, and can be bound to hotkeys under **Settings → Hotkeys**.
 
-Select text in the editor, right-click, and you will see **Translate selected text** and **Translate full note (preserve frontmatter)**.
+### The review panel
 
-### Keyboard shortcuts (optional)
+The translation appears in the right sidebar. From there:
 
-Go to **Settings → Hotkeys**, search "LLM Translate", and bind a hotkey to any of the three commands.
+- **Insert** writes it back into the note — over the selected range for a selection, over the body for a full note, leaving the front-matter alone.
+- **Discard** throws it away. The note was never touched.
+- The text is a normal editable field, so you can correct the translation before inserting it.
 
 ---
 
-## Custom system prompt
+## The system prompt
 
-Default prompt (translated for reference):
+This is what the model is told by default:
 
 ```
 You are a professional translation engine. Translate the following content into {{targetLanguage}}.
 
 Rules:
-- Keep the original paragraph structure and Markdown formatting
-- For proper nouns and technical terms, keep the English on first occurrence with a parenthetical translation
-- Output only the translation — no explanations, summaries, or comments
-- Preserve the tone and style of the original
-- Leave numbers, URLs, and code snippets unchanged
+- Preserve the paragraph structure and Markdown formatting of the source
+- The first time a proper noun or technical term appears, keep it in the source language and put the translation in parentheses right after it
+- Do not add explanations, summaries or comments; output the translation only
+- Preserve the tone and register of the source
+- Leave numbers, URLs and code snippets untouched
 ```
 
-Edit the prompt in settings. `{{targetLanguage}}` is replaced by the **Target language** value (default: `中文`). Click the reset button to restore the default.
-
----
-
-## Compared to alternatives
-
-| | **LLM Translate** (this plugin) | **Translate** (lyc8503/obsidian-translate) | **obsidian-llm-shortcut** (chernodub) |
-|---|---|---|---|
-| Translation focus | Yes — translation only | Yes — translation only | No — general LLM shortcut runner |
-| LLM backend | OpenAI-compatible only | Multiple engines (DeepL, Google, LibreTranslate, LLM…) | OpenAI-compatible |
-| Streaming output | Yes | No | Yes |
-| Frontmatter preservation | Yes | Partial | No |
-| Provider switching | In-editor command | Settings only | Settings only |
-| Cancellation | Yes (status bar ✕) | No | No |
-| Relationship | — | Independent project | This plugin is derived from it |
+`{{targetLanguage}}` is replaced by the **Target language** setting. Edit the prompt to suit your material — a glossary line, a register instruction, a rule about how to handle quotations — and use **Restore default prompt** to go back.
 
 ---
 
 ## FAQ
 
-**Q: Can I stop a translation mid-way?**  
-A: Yes. The status bar shows a spinner during translation; hover over it to reveal an ✕ and click to cancel. The original text is fully restored.
+**Does it modify my note while translating?**
+No. The translation goes to the panel. The note changes only when you press **Insert**.
 
-**Q: Will the plugin run on mobile (iOS/Android)?**  
-A: No. The plugin is marked `isDesktopOnly: true` in its manifest. It is only tested and supported on macOS, Windows, and Linux.
+**What if I edit the note while a translation is open in the panel?**
+The insert is refused, with a notice explaining why. Copy the text out of the panel, or run the translation again.
 
-**Q: Does the frontmatter get translated?**  
-A: No. Full-note translation only processes the body after the `---` delimiter. Frontmatter is passed through unchanged.
+**Is the front-matter translated?**
+No. For a full note, only the body after the closing `---` is sent to the model, and the front-matter is preserved on insert.
 
-**Q: What happens with very long notes?**  
-A: Notes over 20,000 characters trigger a confirmation dialog before the request is sent. Most modern LLMs have ≥128 K context, so 20,000 characters is well within limits — the dialog is a safeguard against accidental large-file translation.
+**Which languages can I translate into?**
+Any language the model supports. **Target language** is a free-text field, so it works in every direction — set it to `English` to go the other way.
 
-**Q: Why did my translation fail halfway?**  
-A: Common causes: expired API key, zero balance, or a misspelled model name. The plugin shows an error dialog with a description. Check Settings → LLM Translate and verify the key and model.
+**Where are my API keys stored?**
+Unencrypted, in `data.json` inside the plugin folder of your vault. This is how Obsidian plugins store settings. Keep it in mind if your vault is synced or shared.
 
-**Q: Do Chinese providers (DeepSeek, Doubao) require a VPN?**  
-A: Generally no — DeepSeek (`api.deepseek.com`), Doubao (Volcengine ARK), Kimi, Qwen, Zhipu, and SiliconFlow all have mainland-China-accessible API endpoints. OpenAI and Gemini endpoints do require network access that bypasses the GFW if you are in China. DeepSeek is currently the cheapest option for Chinese users: `deepseek-chat` is very affordable and produces high-quality translations.
+**Can I use a local model?**
+Yes. Pick **Custom** and point the base URL at your endpoint — for example `http://localhost:11434/v1` for Ollama.
 
-**Q: Which target languages are supported? Can I translate in the reverse direction (Chinese → English)?**  
-A: Any language the underlying LLM supports. Set **Target language** in settings to any language name — `English`, `Japanese`, `French`, etc. — and the prompt will instruct the model to translate into that language. Reverse translation (Chinese → English) works the same way: just set the target language to `English`.
+**What happens with very long notes?**
+Over 20,000 characters you get a confirmation first. The request is sent in one go, so a long note means a large single request: worth knowing if your plan has tight limits.
 
-**Q: Can I use a self-hosted or third-party OpenAI-compatible endpoint?**  
-A: Yes. Select **Custom** from the provider dropdown, enter your base URL (e.g. `http://localhost:11434/v1` for Ollama), API key (if any), and model name.
+**Does it work on mobile?**
+Untested. The manifest says `isDesktopOnly: true`.
 
 ---
 
 ## Requirements
 
-- Obsidian ≥ 0.15.0
-- Desktop only (macOS / Windows / Linux)
-- An API key from at least one supported provider
+- Obsidian ≥ 1.13.0
+- Desktop (macOS / Windows / Linux)
+- An API key from at least one provider
 
 ---
 
 ## License
 
-[MIT](LICENSE) — © 2026 xiaochen
+[MIT](LICENSE)
+
+- Original work © 2026 xiaochen (陈与小金)
+- Fork and subsequent modifications © 2026 D.maggiora
 
 ---
 
 ## Acknowledgements
 
-Derived from [obsidian-llm-shortcut](https://github.com/chernodub/obsidian-llm-shortcut) by chernodub — the streaming output layer and OpenAI-compatible request adapter are based on that work.
+TranslateNote is a fork of [LLM Translate](https://github.com/chenyuxiaojin/obsidian-llm-translate) by 陈与小金, which is itself derived from [obsidian-llm-shortcut](https://github.com/chernodub/obsidian-llm-shortcut) by chernodub — the OpenAI-compatible request adapter and the loading indicator come from that lineage.
+
+This fork exists because the original is a Chinese-only plugin: its interface, its error messages and its default prompt were all in Chinese, which put a good translator out of reach for anyone who does not read it. What changed here: the whole plugin is in English, the provider presets point at globally reachable endpoints, and translations go through a review panel instead of overwriting the note.

@@ -1,14 +1,16 @@
-# obsidian-llm-translate
+# TranslateNote
 
-> An Obsidian plugin that translates selected text or whole notes with LLMs (DeepSeek, OpenAI, Gemini, and any OpenAI-compatible provider), with streaming output and frontmatter preservation.
+> An Obsidian plugin that translates a selection or a whole note with any OpenAI-compatible LLM, and shows the result in a side panel so it can be read against the original before it touches the note.
 
-obsidian-llm-translate lets you translate English articles, notes, or clippings into any language directly inside Obsidian using your own LLM API key.
-It supports streaming output so you see the translation appear in real time, preserves YAML frontmatter on full-note translation, and lets you cancel mid-stream.
-Nine provider presets (DeepSeek, OpenAI, Gemini, Doubao, Kimi, Qwen, Zhipu, SiliconFlow, OpenRouter) plus a custom endpoint option cover virtually any OpenAI-compatible API.
+TranslateNote lets you translate articles, notes, or web clippings into any language directly inside Obsidian, using your own LLM API key.
+The translation opens in a side panel with Insert and Discard: the note is not modified until the reader accepts it, and the text can be edited in the panel first.
+Full-note translation leaves the YAML front-matter untouched, and an insert is refused if the note changed while it was being reviewed.
+The target language is a free-text field rather than a fixed list, and the system prompt is editable.
+Eight provider presets — DeepSeek, OpenAI, Gemini, Kimi (Moonshot), Qwen, Z.AI, OpenRouter, plus Custom — all point at globally reachable endpoints.
 
 ## Documentation
-- [README (English)](README.md): Full English documentation — installation, configuration, usage, FAQ, and comparison with alternatives.
-- [中文文档 (README.zh-CN.md)](README.zh-CN.md): 完整中文文档——安装、配置、使用说明、常见问题及与同类插件对比。
+- [README (English)](README.md): installation, configuration, usage, and FAQ.
 
 ## Links
-- Repository: https://github.com/chenyuxiaojin/obsidian-llm-translate
+- Repository: https://github.com/Dmagg/obsidian-llm-translate
+- Upstream project this is forked from: https://github.com/chenyuxiaojin/obsidian-llm-translate
