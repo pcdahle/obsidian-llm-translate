@@ -121,10 +121,17 @@ export class SettingTab extends PluginSettingTab {
       items: [
         {
           name: "Use for translations",
-          desc: "Makes this the active provider.",
+          desc: "Makes this the provider the translate commands call.",
           visible: () => !isActive(),
-          action: () => {
-            void this.setActiveProvider(provider.id);
+          render: (setting: Setting) => {
+            setting.addButton((btn) =>
+              btn
+                .setButtonText("Set as active")
+                .setCta()
+                .onClick(() => {
+                  void this.setActiveProvider(provider.id);
+                }),
+            );
           },
         },
         {
