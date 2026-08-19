@@ -151,8 +151,21 @@ Nota per il README: questi punti vanno presentati come «cosa fa questo plugin»
 
 ### Passi
 
-1. **Identità distinta dall'upstream** — `manifest.json` porta ancora `id: llm-translate`, `author: xiaochen` e l'`authorUrl` di chenyuxiaojin. L'`id` deve essere diverso da quello del plugin originale, altrimenti va in conflitto nella directory e nelle installazioni. Aggiornare anche `package.json` e `versions.json`.
-2. **Attribuzione del fork** — la licenza MIT dell'originale va mantenuta e citata: nel README, una riga che dica di chi è il lavoro di partenza e cosa è cambiato. È corretto verso l'autore ed è la prima cosa che un revisore chiede a un fork di un plugin già in elenco.
+1. **Identità distinta dall'upstream** — `manifest.json` porta ancora `id: llm-translate`, `author: xiaochen` e l'`authorUrl` di chenyuxiaojin. Aggiornare anche `package.json` e `versions.json`.
+
+   Verificato il 19/08/2026 su `community-plugins.json` (6742 plugin in elenco): **`llm-translate` è già occupato** dall'upstream (LLM Translate, 陈与小金), quindi l'id va cambiato per forza. In elenco ci sono 24 plugin di traduzione, fra cui `llm-translator` (Joseph Kim), quello provato e scartato.
+
+   Id verificati **liberi**: `rosetta`, `polyglot`, `note-translator`, `translate-notes`, `fanyi-llm`, `translate-llm`, `llm-translate-intl`, `babel`, `lingua`, `interpres`, `traduco`, `clear-translate`.
+
+   **Nome ancora da decidere.** Una nota su `fanyi-llm`: *fānyì* (翻译) significa «traduzione» solo per chi legge il cinese, cioè non il pubblico di questo fork, e in elenco c'è già `kuaifanyi` — il nome rimetterebbe in copertina la barriera che il fork esiste per togliere.
+
+2. **Attribuzione del fork** — la licenza MIT dell'originale va mantenuta e citata. Impostazione decisa:
+
+   - `LICENSE`: copyright originale conservato, più la riga di copyright del manutentore del fork;
+   - `README`, in alto: «Fork of LLM Translate by 陈与小金 (MIT)» con una riga su cosa è cambiato;
+   - `manifest.json`: `author` e `authorUrl` del manutentore del fork.
+
+   Il campo `author` della directory indica **chi è responsabile del plugin** — chi risponde alle issue, pubblica gli aggiornamenti e parla con i revisori — non chi ha scritto le prime righe di codice. Per questo non può restare l'autore originale, che non mantiene questa versione. Il riconoscimento all'origine sta nella licenza e nel README, che è dove conta.
 3. **README per il pubblico** — in inglese, con i tre punti di posizionamento qui sopra, una schermata del pannello di revisione, la tabella dei provider, e una nota esplicita sul fatto che **le API key sono salvate in chiaro** in `data.json` del vault (è la norma per questi plugin, ma va detto).
 4. **Conformità alle regole di revisione** — chiudere i due warning rimasti di `eslint-plugin-obsidianmd`: adottare `getSettingDefinitions()` per la ricerca nelle impostazioni (Obsidian 1.13+), e sistemare il placeholder segnalato da `sentence-case`. Ricontrollare anche l'assenza di log rumorosi in produzione.
 5. **Release su GitHub** — tag uguale al numero di versione **senza** la `v` iniziale, con `main.js`, `manifest.json` e `styles.css` allegati come file, non solo nel sorgente.
