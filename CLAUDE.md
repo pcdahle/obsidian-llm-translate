@@ -1,44 +1,51 @@
 # CLAUDE.md
 
-## 项目说明
+## Fork del plugin per Obsidian di 陈与小金 Chenyuxiaojin e Claude: 
 
-基于 obsidian-llm-shortcut 精简改造的 Obsidian 翻译插件，只做两件事：
-1. 翻译选中文本（选中 → AI 翻译 → 替换）
-2. 翻译全文（保留 YAML frontmatter，翻译正文）
+linguaggio: Typescript -> JS
 
-支持多 Provider 切换（DeepSeek/OpenAI/Gemini/豆包/Kimi/千问/智谱/SiliconFlow/OpenRouter）。
+(https://github.com/chenyuxiaojin/obsidian-llm-translate.git) versione monolingua cinese
 
-## 背景
+Questo fork è stato creato per sviluppare una versione internazionale (inglese) 
+e per implementare nuove funzionalità perchè tra i plugin della comunità di Osidian è tra i migliori
+traduttori per testo markdown, ma è completamente inutilizzabile da un utente non cinese.
 
-- 用户从网页/YouTube 剪藏英文内容到 Obsidian，需要翻译成中文阅读
-- 之前尝试魔改 Text Generator 插件（textgenerator-zh），因功能臃肿已放弃
-- 调研后选择 obsidian-llm-shortcut 作为基础，砍掉 Prompt 文件系统，只留 API 调用+流式输出
 
-## 参考仓库
+## Descrizione del progetto
 
-- LLM Shortcut 源码：`~/项目/参考仓库/obsidian-llm-shortcut/`（核心参考，复制 API 调用和流式输出逻辑）
-- cc-switch 源码：`~/项目/参考仓库/cc-switch/`（参考 Provider 预置和管理方式）
+Questo plugin di traduzione per Obsidian, una versione semplificata di obsidian-llm-shortcut, svolge solo due funzioni:
 
-## 技术栈
+1. Traduce il testo selezionato (Seleziona → Traduzione automatica → Sostituisci)
 
-- TypeScript + esbuild 构建
-- openai SDK（v6.8.1）调用 API
+2. Traduce l'intero testo (mantiene il frontmatter YAML, traduce il testo principale)
+
+Support multiple Provider Switch（DeepSeek/OpenAI/Gemini/豆包/Kimi/Qwen/Z.ai/SiliconFlow/OpenRouter）。
+
+## Reference Repository
+
+- LLM Shortcut Source code: `~/home/pippo/Documenti/GITHUB/obsidian-llm-translate` (Core reference, copy the API calls and streaming output logic)
+- cc-switch Source code:`~/project/reference-repository/cc-switch/`（Refer to the Provider's pre-configured and management methods）
+
+## technology stack
+
+- TypeScript + esbuild build
+- openai SDK（v6.8.1）call API
 - Obsidian Plugin API
-- 中文 UI
+- Chinese UI  da eliminare
 
-## 开发计划
+## Development Plan
 
-详见 `PLAN.md`，分 7 个 Phase 实施。
+See `PLAN.md` for details; it is implemented in 7 phases.
 
-## 常用命令
+## Common commands
 
 ```bash
-npm install        # 安装依赖
-npm run build      # 构建
-npm run dev        # 开发模式（watch）
+npm install        # Install dependencies
+npm run build      # Build
+npm run dev        # Development Pattern (watch)
 ```
 
-## 构建产物部署
+## Deployment of build artifacts
 
-构建后将 `main.js` + `manifest.json` 复制到：
-`~/obsidian/.obsidian/plugins/llm-translate/`
+After building, copy `main.js` + `manifest.json` to:
+`~/home/pippo/Documenti/Obsidian/tutorial-obsidian/.obsidian/plugins/llm-translate`
