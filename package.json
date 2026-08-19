@@ -1,7 +1,7 @@
 {
   "name": "llm-translate",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "main": "main.js",
   "scripts": {
     "build": "node esbuild.mjs",
@@ -21,7 +21,7 @@
     "esbuild": "^0.27.0",
     "eslint": "^9.39.4",
     "eslint-plugin-obsidianmd": "^0.4.1",
-    "obsidian": "^1.10.3",
+    "obsidian": "^1.13.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.62.1"
   },

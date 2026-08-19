@@ -38,7 +38,7 @@ import { LONG_TEXT_THRESHOLD, PLUGIN_NAME } from "./utils/constants";
 import { nextFrame } from "./utils/next-frame";
 
 export default class TranslatePlugin extends Plugin {
-  public settings: PluginSettings = DEFAULT_SETTINGS;
+  public override settings: PluginSettings = DEFAULT_SETTINGS;
   private llmClient: LLMClient | undefined;
   private readonly loaderStrategy: LoaderStrategy;
   private abortController: AbortController | undefined;
