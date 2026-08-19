@@ -1,10 +1,10 @@
 {
-  "id": "llm-translate",
-  "name": "LLM Translate",
+  "id": "translate-note",
+  "name": "TranslateNote",
   "version": "0.2.0",
   "minAppVersion": "1.13.0",
-  "description": "Translate selected text or full notes using DeepSeek, OpenAI, Gemini, and other OpenAI-compatible LLM providers. Preserves YAML frontmatter and supports streaming with cancellation.",
-  "author": "xiaochen",
-  "authorUrl": "https://github.com/chenyuxiaojin",
+  "description": "Translate a selection or a whole note with any OpenAI-compatible LLM. The translation opens in a side panel for review, so the note only changes when you insert it. YAML front-matter is left intact.",
+  "author": "D.maggiora",
+  "authorUrl": "https://github.com/Dmagg",
   "isDesktopOnly": true
 }

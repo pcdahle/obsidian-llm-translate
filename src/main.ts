@@ -171,7 +171,7 @@ export default class TranslatePlugin extends Plugin {
     if (this.settings.providers.length === 0) {
       showErrorNotification({
         title: "No API provider configured yet",
-        suggestions: ["Add one in Settings → LLM Translate"],
+        suggestions: ["Add one in Settings → TranslateNote"],
       });
       return;
     }
@@ -356,7 +356,7 @@ export default class TranslatePlugin extends Plugin {
       showErrorNotification({
         title: "No usable API provider configured yet",
         suggestions: [
-          "In Settings → LLM Translate, add a provider and fill in its API key and model name",
+          "In Settings → TranslateNote, add a provider and fill in its API key and model name",
         ],
       });
       return false;

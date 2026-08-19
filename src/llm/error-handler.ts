@@ -5,7 +5,7 @@ function handleAuthenticationError(): ErrorNotificationOptions {
     title: "🔑 Authentication failed",
     message: "The API key is invalid or has expired.",
     suggestions: [
-      "Check the active provider's API key in Settings → LLM Translate",
+      "Check the active provider's API key in Settings → TranslateNote",
       "Generate a new key in the provider's dashboard",
       "Make sure the key was copied in full, with no stray spaces or line breaks",
     ],

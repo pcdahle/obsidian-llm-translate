@@ -1,4 +1,4 @@
-# Piano di sviluppo — LLM Translate (fork internazionale)
+# Piano di sviluppo — TranslateNote (fork internazionale)
 
 ## Contesto
 
@@ -107,9 +107,7 @@ Risolverlo richiede una `fetch` che streami davvero. `requestUrl` non lo permett
 
 
 
-L'annullamento può emergere come `AbortError` interno, come `APIUserAbortError` dell'SDK, oppure avvolto in un `APIConnectionError` quando è l'adapter a rifiutare a metà volo. `main.ts` riconosceva solo il primo caso, quindi negli altri mostrava una notifica di errore **senza ripristinare il testo originale**. Ora la condizione guarda `abortController.signal.aborted`, che è l'unico testimone affidabile.
-
-Aggiunto anche il comando **«Cancel running translation»**, visibile nella palette solo mentre una traduzione è in corso: l'unico modo di annullare era cliccare lo spinner nella barra di stato, poco visibile e — per via del problema 1 — quasi mai cliccabile in tempo.
+Per la cronaca, il bug che era stato corretto prima di arrivare al pannello: l'annullamento può emergere come `AbortError` interno, come `APIUserAbortError` dell'SDK, oppure avvolto in un `APIConnectionError` quando è l'adapter a rifiutare a metà volo. `main.ts` riconosceva solo il primo caso, quindi negli altri mostrava una notifica di errore **senza ripristinare il testo originale**. La condizione guarda ora `abortController.signal.aborted`, che è l'unico testimone affidabile.
 
 Resta vero che, finché lo streaming non è reale, l'annullamento serve solo durante l'attesa della risposta, quando nulla è ancora stato scritto.
 
@@ -157,7 +155,11 @@ Nota per il README: questi punti vanno presentati come «cosa fa questo plugin»
 
    Id verificati **liberi**: `rosetta`, `polyglot`, `note-translator`, `translate-notes`, `fanyi-llm`, `translate-llm`, `llm-translate-intl`, `babel`, `lingua`, `interpres`, `traduco`, `clear-translate`.
 
-   **Nome ancora da decidere.** Una nota su `fanyi-llm`: *fānyì* (翻译) significa «traduzione» solo per chi legge il cinese, cioè non il pubblico di questo fork, e in elenco c'è già `kuaifanyi` — il nome rimetterebbe in copertina la barriera che il fork esiste per togliere.
+   ✅ **Fatto il 19/08/2026**: `id: translate-note`, `name: TranslateNote`, `author: D.maggiora`, `authorUrl` sul profilo GitHub del manutentore, descrizione riscritta attorno al pannello di revisione. Versione portata a `0.2.0` in `manifest.json`, `package.json` e `versions.json`, perché la `0.1.1` è già pubblicata a monte con `minAppVersion 1.8.7` e il requisito di una versione già rilasciata non si cambia a posteriori.
+
+   Scartato `fanyi-llm`: *fānyì* (翻译) significa «traduzione» solo per chi legge il cinese, cioè non il pubblico di questo fork, e in elenco c'è già `kuaifanyi` — avrebbe rimesso in copertina la barriera che il fork esiste per togliere.
+
+   **Conseguenza operativa:** la cartella del plugin nel vault cambia nome, da `.obsidian/plugins/llm-translate` a `.obsidian/plugins/translate-note`. Le impostazioni stanno in `data.json` dentro la vecchia cartella: vanno copiate, altrimenti provider e API key risultano da riconfigurare.
 
 2. **Attribuzione del fork** — la licenza MIT dell'originale va mantenuta e citata. Impostazione decisa:
 
@@ -195,7 +197,7 @@ Stato: `tsc` pulito; `eslint` 0 errori e 2 warning preesistenti (`prefer-setting
 Distribuzione per i test manuali:
 
 ```bash
-cp main.js manifest.json styles.css ~/Documenti/Obsidian/tutorial-obsidian/.obsidian/plugins/llm-translate/
+cp main.js manifest.json styles.css ~/Documenti/Obsidian/tutorial-obsidian/.obsidian/plugins/translate-note/
 ```
 
 Prove manuali superate il 19/08/2026: menu contestuale, pagina impostazioni con più provider, traduzione con due provider funzionanti, errore leggibile senza API key, modal di conferma oltre i 20.000 caratteri.

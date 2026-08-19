@@ -1,23 +1,23 @@
-.llm-translate-review {
+.translate-note-review {
   display: flex;
   flex-direction: column;
   height: 100%;
   gap: var(--size-4-2);
 }
 
-.llm-translate-review-status {
+.translate-note-review-status {
   color: var(--text-muted);
   font-size: var(--font-ui-small);
   margin: 0;
 }
 
-.llm-translate-review-text {
+.translate-note-review-text {
   flex: 1 1 auto;
   width: 100%;
   resize: none;
   white-space: pre-wrap;
 }
 
-.llm-translate-hidden {
+.translate-note-hidden {
   display: none;
 }

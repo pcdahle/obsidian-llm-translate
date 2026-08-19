@@ -48,4 +48,4 @@ npm run dev        # Development Pattern (watch)
 ## Deployment of build artifacts
 
 After building, copy `main.js` + `manifest.json` to:
-`~/home/pippo/Documenti/Obsidian/tutorial-obsidian/.obsidian/plugins/llm-translate`
+`~/home/pippo/Documenti/Obsidian/tutorial-obsidian/.obsidian/plugins/translate-note`

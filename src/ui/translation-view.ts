@@ -4,7 +4,7 @@ import {
   showInfoNotification,
 } from "./user-notifications";
 
-export const TRANSLATION_VIEW_TYPE = "llm-translate-review";
+export const TRANSLATION_VIEW_TYPE = "translate-note-review";
 
 export interface TranslationSource {
   /** Path of the note the translation belongs to. */
@@ -93,15 +93,15 @@ export class TranslationView extends ItemView {
   private render(): void {
     const container = this.contentEl;
     container.empty();
-    container.addClass("llm-translate-review");
+    container.addClass("translate-note-review");
 
     this.statusEl = container.createEl("p", {
-      cls: "llm-translate-review-status",
+      cls: "translate-note-review-status",
       text: "No translation yet. Translate a full note to see it here.",
     });
 
     this.textArea = container.createEl("textarea", {
-      cls: "llm-translate-review-text",
+      cls: "translate-note-review-text",
     });
     this.textArea.spellcheck = false;
 
@@ -130,7 +130,7 @@ export class TranslationView extends ItemView {
   }
 
   private setActionsVisible(visible: boolean): void {
-    this.actionsEl?.toggleClass("llm-translate-hidden", !visible);
+    this.actionsEl?.toggleClass("translate-note-hidden", !visible);
   }
 
   private discard(): void {
