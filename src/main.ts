@@ -140,6 +140,15 @@ export default class TranslatePlugin extends Plugin {
         this.openProviderSwitcher();
       },
     });
+    this.addCommand({
+      id: "cancel-translation",
+      name: "Cancel running translation",
+      checkCallback: (checking) => {
+        if (!this.abortController) return false;
+        if (!checking) this.abortController.abort();
+        return true;
+      },
+    });
   }
 
   private openProviderSwitcher(): void {
@@ -268,7 +277,10 @@ export default class TranslatePlugin extends Plugin {
       }
       finalize(text);
     } catch (error) {
-      if (error instanceof AbortError) {
+      // The abort can surface as our own AbortError, as the SDK's
+      // APIUserAbortError, or wrapped in an APIConnectionError when the fetch
+      // adapter rejects mid-flight. The signal is the only reliable witness.
+      if (abortController.signal.aborted || error instanceof AbortError) {
         editor.setValue(originalFullText);
       } else {
         showErrorNotification(mapLlmErrorToReadable(error));

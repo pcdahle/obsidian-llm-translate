@@ -4,51 +4,58 @@
 
 Questo repository è un fork di [chenyuxiaojin/obsidian-llm-translate](https://github.com/chenyuxiaojin/obsidian-llm-translate), un plugin di traduzione per Obsidian nato a sua volta come versione semplificata di `obsidian-llm-shortcut`: conserva solo il nucleo «chiamata API + output in streaming» e aggiunge la gestione multi-provider e la logica di traduzione.
 
-Il plugin fa bene due cose — tradurre la selezione e tradurre l'intera nota preservando il frontmatter YAML — ed è tra i migliori traduttori di Markdown della comunità Obsidian. Ma è **monolingua cinese**: comandi, pagina delle impostazioni, messaggi di errore, prompt predefinito e lingua di destinazione sono tutti in cinese. Per chi non legge il cinese è di fatto inutilizzabile.
+Il plugin fa bene due cose — tradurre la selezione e tradurre l'intera nota preservando il front-matter YAML — ed è tra i migliori traduttori di Markdown della comunità Obsidian. Ma nasce **monolingua cinese**, e per chi non legge il cinese era di fatto inutilizzabile: da qui il fork.
 
-Il piano originale (costruzione del plugin da zero in 7 fasi) è stato interamente eseguito: il codice esiste, compila e funziona. Questo documento lo sostituisce e descrive la milestone attuale del fork.
+## Milestone 1 — «tutto in inglese» ✅ completata il 19/08/2026
 
-## Obiettivo attuale — unica milestone
+Codice e interfaccia sono al 100% in inglese: stringhe utente, commenti, JSDoc e valori predefiniti. Commit `cb230e5` (migrazione), `b75aa2f` (correzioni dai test manuali).
 
-**Portare codice e interfaccia al 100% in inglese.**
+Cosa comprende, in sintesi:
 
-Nient'altro. Nessuna nuova funzionalità, nessuna riorganizzazione dell'architettura, nessun sistema di traduzione dell'interfaccia. Finché questa milestone non è chiusa e verificata, gli sviluppi successivi restano in attesa.
+- comandi, menu contestuale dell'editor, notifiche, messaggi dell'indicatore di caricamento, selettore dei provider;
+- pagina delle impostazioni, in sentence case secondo le convenzioni Obsidian;
+- messaggi di errore delle API e relativi suggerimenti;
+- prompt di sistema predefinito, con la regola «termine originale + traduzione tra parentesi» resa indipendente dalla lingua;
+- `targetLanguage` predefinito su `English`;
+- preset dei provider ridotti ai soli endpoint globali.
 
-Riguarda:
+Gli `id` dei comandi non sono cambiati, quindi le hotkey già assegnate continuano a funzionare. Nessuna migrazione delle impostazioni salvate: le configurazioni esistenti in `data.json` restano come sono, e per vedere i nuovi valori predefiniti si usa il pulsante «Restore default prompt».
 
-- ogni stringa che l'utente vede (comandi, menu contestuale, impostazioni, notifiche, errori, modal);
-- ogni commento e JSDoc nel sorgente;
-- i valori predefiniti (prompt di sistema, lingua di destinazione, elenco dei provider).
+### Decisioni consolidate
 
-## Fuori ambito, per ora
+Restano valide per tutto il lavoro successivo:
 
-Elencati qui perché sono passi previsti, ma **dopo** la milestone corrente:
+| Tema | Decisione | Motivo |
+|------|-----------|--------|
+| Lingua del codice e dell'UI | Inglese al 100% | Base comune per qualsiasi utente e per un eventuale i18n futuro |
+| Lingua della documentazione | `PLAN.md` e `CLAUDE.md` in italiano; `README.md` e `llms.txt` in inglese | I primi sono documenti di lavoro, i secondi si rivolgono al pubblico del repo |
+| `targetLanguage` predefinito | `English` | Default neutro; è un campo di testo libero |
+| Preset dei provider | Solo endpoint globali, incluse le aziende cinesi che ne offrono uno | Un utente fuori dalla Cina non riesce a registrarsi sugli endpoint domestici |
+| Stile delle stringhe | Convenzioni ufficiali Obsidian: sentence case, nessun prefisso col nome del plugin | Requisito per l'eventuale invio alla directory dei plugin della comunità |
+| Verifica «zero cinese» | `grep -rnP '[\x{3000}-\x{303F}\x{4E00}-\x{9FFF}\x{FF00}-\x{FFEF}]' src/` | Da preferire a `\p{Han}`, che in questo PCRE dà un falso positivo su `·` (U+00B7) |
 
-- **Sistema i18n multilingua** (file di traduzione, rilevamento della lingua di Obsidian, UI in italiano/cinese/altro). Oggi le stringhe restano scritte direttamente nel codice, in inglese.
-- **Documentazione in italiano** — `PLAN.md` e `CLAUDE.md` sono già in italiano; col tempo anche gli altri `.md` di lavoro. `README.md` e `llms.txt` restano in inglese perché rivolti al pubblico del repository.
-- **Identità del plugin per una distribuzione separata** — `manifest.json` (`id`, `author`, `authorUrl`) punta ancora all'upstream. Va cambiato solo se e quando il fork verrà pubblicato come plugin distinto.
-- **Nuove funzionalità** — glossario, cache, supporto mobile, ecc.
+### Preset dei provider
 
-### Candidata alla prossima milestone: rivedere la traduzione prima di accettarla
+| Nome | Base URL | Modello predefinito | Affidabilità del default |
+|------|----------|---------------------|--------------------------|
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` | alta (alias stabile) |
+| OpenAI | `https://api.openai.com/v1` | `gpt-5.4-mini` | media (id da confermare) |
+| Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-3.5-flash-lite` | media |
+| Kimi (Moonshot) | `https://api.moonshot.ai/v1` | `kimi-k2.6` | media (la serie `moonshot-v1` chiude il 31/08/2026) |
+| Qwen | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1` | `qwen-turbo` | alta (alias stabile) |
+| Z.AI (GLM) | `https://api.z.ai/api/paas/v4` | `glm-4.7-flash` | alta (modello gratuito) |
+| OpenRouter | `https://openrouter.ai/api/v1` | (vuoto) | — |
+| Custom | (vuoto) | (vuoto) | — |
 
-Emersa dai test manuali del 19/08/2026: oggi la traduzione **sovrascrive** il testo
-originale, quindi non c'è modo di confrontarla con la fonte per verificarla. Due
-approcci possibili, da scegliere:
-
-1. **Interruttore originale / tradotto** — il testo originale resta in memoria e un
-   pulsante alterna le due versioni nell'editor.
-2. **Traduzione a fronte** — la traduzione compare in un pannello laterale destro
-   con il suo tab, più un pulsante «inserisci» che la scrive nella nota.
-
-Il secondo approccio è più invasivo (richiede una `ItemView` registrata) ma non tocca
-la nota finché l'utente non decide; il primo è più semplice ma va ripensato per
-sopravvivere alla chiusura della nota.
+Verificati sul campo: OpenRouter con `google/gemma-4-31b-it` e Z.AI con `glm-4.7-flash` funzionano.
+Doubao e SiliconFlow sono stati rimossi perché legati al mercato cinese; si aggiungono con «Custom».
+Possibili aggiunte future: Anthropic e Mistral, entrambi con endpoint compatibili OpenAI.
 
 ## Stato attuale del codice
 
 ```
 src/
-├── main.ts                    # Entry point: 3 comandi, menu contestuale, scrittura in streaming, annulla/ripristina
+├── main.ts                    # Entry point: 4 comandi, menu contestuale, scrittura in streaming, annulla/ripristina
 ├── settings.ts                # Interfaccia PluginSettings + valori predefiniti + prompt di sistema
 ├── setting-tab.ts             # Pagina impostazioni: gestione provider + impostazioni di traduzione
 ├── logger.ts                  # Log
@@ -58,15 +65,15 @@ src/
 │   ├── types.ts               # ProviderConfig, ProviderPreset
 │   └── presets.ts             # Elenco dei provider predefiniti
 ├── llm/
-│   ├── llm-client.ts          # Chiamata in streaming con l'SDK OpenAI
+│   ├── llm-client.ts          # Chiamata con l'SDK OpenAI
 │   └── error-handler.ts       # Mappatura degli errori API in messaggi leggibili
 ├── translation/
 │   ├── prompt.ts              # Costruzione del system prompt ({{targetLanguage}})
-│   ├── extract-body.ts        # Separazione frontmatter YAML / corpo del testo
+│   ├── extract-body.ts        # Separazione front-matter YAML / corpo del testo
 │   └── long-text-confirm.ts   # Modal di conferma oltre i 20.000 caratteri
 ├── ui/
-│   ├── loader-strategy.ts     # Indicatore di caricamento desktop/mobile
-│   ├── loading-status/        # Stato di caricamento nella status bar (con annulla)
+│   ├── loader-strategy.ts     # Indicatore di caricamento desktop (status bar) / mobile (Notice)
+│   ├── loading-status/        # Stato di caricamento con annullamento al clic
 │   ├── spinner/               # Animazione di caricamento
 │   └── user-notifications.ts  # Notifiche Notice
 └── utils/
@@ -74,117 +81,61 @@ src/
     └── obsidian-fetch-adapter.ts  # fetch via requestUrl, evita i problemi di CORS
 ```
 
-### Inventario del cinese residuo
+## Problemi aperti
 
-Rilevato con `grep -rnP '\p{Han}' src/`:
+### 1. Lo streaming non è vero streaming (causa architetturale)
 
-| File | Cosa contiene | Righe |
-|------|---------------|-------|
-| `llm/error-handler.ts` | Titoli, messaggi e suggerimenti di tutti gli errori API | 27 |
-| `main.ts` | Nomi dei 3 comandi, voci del menu contestuale, notifiche, messaggi del loader, testo del Suggester | 19 |
-| `setting-tab.ts` | Ogni `setName` / `setDesc` / `setButtonText` / `setPlaceholder` | 17 |
-| `settings.ts` | `DEFAULT_TRANSLATION_SYSTEM_PROMPT` e `targetLanguage: "中文"` | 8 |
-| `providers/presets.ts` | 4 nomi di provider: 豆包, 通义千问, 智谱, 自定义 | 4 |
-| `translation/long-text-confirm.ts` | Titolo, corpo e pulsanti della modal di conferma | 4 |
-| `ui/loading-status/loading-status.ts` | `CANCEL_HINT = "点击取消"` | 1 |
-| `ui/user-notifications.ts` | Etichetta `"💡 建议："` | 1 |
-| `utils/constants.ts` | `PLUGIN_NAME = "翻译"` | 1 |
-| `translation/extract-body.ts`, `utils/obsidian-fetch-adapter.ts` | Solo commenti JSDoc | 4 |
+`obsidian-fetch-adapter.ts` implementa `fetch` con `requestUrl` di Obsidian, che **bufferizza l'intera risposta** e la restituisce come `response.text`. L'SDK OpenAI riceve quindi il corpo già completo e ne estrae gli eventi SSE tutti insieme: il testo non compare progressivamente, ma in un blocco solo alla fine.
 
-Punti accertati che semplificano il lavoro:
+Conseguenze pratiche:
 
-- Gli `id` dei comandi (`translate-selection`, `translate-document`, `switch-provider`) sono **già in inglese**: cambiare i `name` non rompe né le hotkey configurate né i link `obsidian://`.
-- `README.md`, `llms.txt` e `manifest.json` sono **già in inglese**: nessun intervento.
-- Nessun carattere cinese nei file CSS.
+- l'attesa è muta: durante la richiesta si vede solo lo spinner, poi il testo appare tutto insieme;
+- **non esiste una finestra utile per annullare** durante la scrittura: quando il testo inizia a comparire, la richiesta è già conclusa;
+- `next-frame.ts` e la scrittura a chunk restano nel codice ma non producono l'effetto per cui erano pensati.
 
-## Decisioni
+Risolverlo richiede una `fetch` che streami davvero. `requestUrl` non lo permette; le alternative sono la `fetch` nativa (soggetta a CORS nel renderer di Obsidian) o l'API `net` di Electron. Da valutare, non banale.
 
-| Tema | Decisione | Motivo |
-|------|-----------|--------|
-| Lingua del codice e dell'UI | Inglese al 100%: stringhe utente, commenti, JSDoc, prompt predefinito | Base comune per qualsiasi utente e per un eventuale i18n futuro |
-| Lingua della documentazione | `PLAN.md` e `CLAUDE.md` in italiano; `README.md` e `llms.txt` in inglese | I primi sono documenti di lavoro, i secondi si rivolgono al pubblico del repo |
-| `targetLanguage` predefinito | `"English"` (oggi `"中文"`) | Default neutro; resta un campo di testo libero, chi vuole l'italiano scrive «Italian» |
-| Preset dei provider | Solo endpoint **globali**, incluse le aziende cinesi che ne offrono uno (DeepSeek, Kimi, Qwen, Z.AI). Esclusi Doubao (solo Cina) e SiliconFlow (dominio `.cn`, piattaforma orientata al mercato cinese) | Un utente fuori dalla Cina non riesce a registrarsi né a pagare sugli endpoint domestici |
-| Migrazione delle impostazioni | Nessuna | È un fork nuovo, nessuna installazione esistente da preservare |
-| Stile delle stringhe | Convenzioni ufficiali Obsidian: sentence case per comandi e impostazioni, nessun prefisso col nome del plugin, nessun heading «Settings» | Requisito per l'eventuale invio alla directory dei plugin della comunità; `eslint-plugin-obsidianmd` è già configurato |
+### 2. Annullamento: il ripristino non scattava — corretto
 
-## Fasi di implementazione
+L'annullamento può emergere come `AbortError` interno, come `APIUserAbortError` dell'SDK, oppure avvolto in un `APIConnectionError` quando è l'adapter a rifiutare a metà volo. `main.ts` riconosceva solo il primo caso, quindi negli altri mostrava una notifica di errore **senza ripristinare il testo originale**. Ora la condizione guarda `abortController.signal.aborted`, che è l'unico testimone affidabile.
 
-### Fase 1 — Stringhe di base
+Aggiunto anche il comando **«Cancel running translation»**, visibile nella palette solo mentre una traduzione è in corso: l'unico modo di annullare era cliccare lo spinner nella barra di stato, poco visibile e — per via del problema 1 — quasi mai cliccabile in tempo.
 
-1. `utils/constants.ts`: `PLUGIN_NAME` → `"LLM Translate"` (compare nei messaggi del loader e nelle notifiche).
-2. `ui/loading-status/loading-status.ts`: `CANCEL_HINT` → `"Click to cancel"`.
-3. `ui/user-notifications.ts`: etichetta dei suggerimenti → `"💡 Suggestions:"`.
+Resta vero che, finché lo streaming non è reale, l'annullamento serve solo durante l'attesa della risposta, quando nulla è ancora stato scritto.
 
-### Fase 2 — Comandi e menu contestuale (`main.ts`)
+### 3. Impossibile rivedere la traduzione prima di accettarla
 
-4. Nomi dei comandi, **`id` invariati**:
-   - `translate-selection` → `Translate selection`
-   - `translate-document` → `Translate full note (preserve frontmatter)`
-   - `switch-provider` → `Switch API provider`
-5. Voci del menu contestuale dell'editor allineate ai nomi dei comandi.
-6. Notifiche e messaggi del loader in inglese: nessun provider configurato, nessuna selezione, corpo del testo vuoto, traduzione già in corso, provider attivato, errore di traduzione.
-7. Suggester di cambio provider: placeholder e riga «modello non impostato» in inglese.
+La traduzione **sovrascrive** il testo originale, quindi non c'è modo di confrontarla con la fonte. Due approcci possibili:
 
-### Fase 3 — Pagina delle impostazioni (`setting-tab.ts`)
+1. **Interruttore originale / tradotto** — il testo originale resta in memoria e un pulsante alterna le due versioni nell'editor. Semplice, ma lo stato non sopravvive alla chiusura della nota, e intanto il file su disco è già stato sovrascritto.
+2. **Traduzione a fronte** — la traduzione compare in un pannello laterale destro con il suo tab, più un pulsante «inserisci» che la scrive nella nota. Richiede una `ItemView` registrata, ma **non tocca la nota** finché non si decide.
 
-8. Sezione provider: nome/descrizione del selettore «Add provider», stato vuoto, pulsanti «Set as active» / «Delete», campi «Display name», «Base URL», «API key», «Model», etichetta «(no base URL)».
-9. Sezione traduzione: heading, «Target language» (con descrizione del segnaposto `{{targetLanguage}}`), «Translation prompt», tooltip «Restore default prompt».
-10. Tutto in sentence case, secondo le convenzioni Obsidian.
+Il secondo approccio è più lavoro e risolve il problema alla radice; è anche l'unico che rende utile un vero streaming, perché il testo può scorrere nel pannello senza toccare il documento.
 
-### Fase 4 — Messaggi di errore (`llm/error-handler.ts`)
+## Fuori ambito, per ora
 
-11. Riscrivere in inglese i 6 casi gestiti (autenticazione, rate limit, modello inesistente, credito esaurito, parametri della richiesta, permessi) più il fallback «errore sconosciuto», mantenendo la struttura titolo / messaggio / suggerimenti e le emoji esistenti.
-12. Nei suggerimenti, sostituire i riferimenti all'UI cinese («设置 → 翻译») con i nuovi nomi inglesi delle impostazioni.
+- **Sistema i18n multilingua** (file di traduzione, rilevamento della lingua di Obsidian, UI in italiano). Oggi le stringhe stanno nel codice, in inglese.
+- **Documentazione in italiano** per gli altri `.md` di lavoro.
+- **Identità del plugin per una distribuzione separata** — `manifest.json` (`id`, `author`, `authorUrl`) punta ancora all'upstream. Da cambiare se e quando il fork verrà pubblicato come plugin distinto.
+- **Nuove funzionalità** — glossario, cache, supporto mobile.
 
-### Fase 5 — Default di traduzione (`settings.ts`)
+## Verifica
 
-13. `targetLanguage: "English"`.
-14. `DEFAULT_TRANSLATION_SYSTEM_PROMPT` riscritto in inglese, mantenendo il segnaposto `{{targetLanguage}}` e le stesse regole:
-    - conservare struttura dei paragrafi e formattazione Markdown;
-    - alla prima occorrenza di nomi propri e termini tecnici, conservare il termine originale e affiancare la traduzione tra parentesi — regola resa **generica** (oggi è specifica «inglese → cinese»);
-    - nessuna spiegazione, riassunto o commento: solo la traduzione;
-    - conservare tono e stile dell'originale;
-    - lasciare invariati numeri, URL e frammenti di codice.
+Comandi:
 
-### Fase 6 — Preset dei provider (`providers/presets.ts`)
+```bash
+npm run check   # tsc
+npm run lint    # eslint + eslint-plugin-obsidianmd
+npm run build   # esbuild → main.js + styles.css
+```
 
-15. Sostituire l'elenco con i soli provider ad accesso globale:
+Stato: `tsc` pulito; `eslint` 0 errori e 2 warning preesistenti (`prefer-setting-definitions`, architetturale; e un falso positivo di `sentence-case` sul placeholder `https://api.example.com/v1`).
 
-| Nome | Base URL | Modello predefinito | Affidabilità del default |
-|------|----------|---------------------|--------------------------|
-| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` | alta (alias stabile) |
-| OpenAI | `https://api.openai.com/v1` | `gpt-5.4-mini` | media (nome commerciale «GPT-5.4 Mini», id da confermare) |
-| Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-3.5-flash-lite` | media |
-| Kimi (Moonshot) | `https://api.moonshot.ai/v1` | `kimi-k2.6` | media (la serie `moonshot-v1` chiude il 31/08/2026) |
-| Qwen | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1` | `qwen-turbo` | alta (alias stabile) |
-| Z.AI (GLM) | `https://api.z.ai/api/paas/v4` | `glm-4.7-flash` | alta (modello gratuito) |
-| OpenRouter | `https://openrouter.ai/api/v1` | (vuoto) | — |
-| Custom | (vuoto) | (vuoto) | — |
+Distribuzione per i test manuali:
 
-16. Rimossi: 豆包 (Doubao, endpoint `ark.cn-beijing.volces.com`, solo Cina) e SiliconFlow (`api.siliconflow.cn`). Chi li usa può sempre configurarli con «Custom».
-17. `自定义` → `Custom`.
+```bash
+cp main.js manifest.json styles.css ~/Documenti/Obsidian/tutorial-obsidian/.obsidian/plugins/llm-translate/
+```
 
-> Endpoint e nomi dei modelli vanno riverificati sulla documentazione ufficiale al momento dell'implementazione: Kimi e Z.AI hanno endpoint distinti per Cina e resto del mondo, e i modelli disponibili su quello internazionale possono avere nomi diversi. Possibili aggiunte future — Anthropic e Mistral hanno endpoint compatibili con OpenAI — restano idee, non lavoro pianificato.
-
-### Fase 7 — Commenti, verifica e allineamento della documentazione
-
-18. Tradurre in inglese i JSDoc cinesi rimasti (`translation/extract-body.ts`, `utils/obsidian-fetch-adapter.ts`) e ogni commento intercettato durante le fasi precedenti.
-19. `npm run check` (TypeScript), `npm run lint` (ESLint + `eslint-plugin-obsidianmd`), `npm run build`.
-20. Controllo finale: `grep -rnP '[\x{3000}-\x{303F}\x{4E00}-\x{9FFF}\x{FF00}-\x{FFEF}]' src/` non deve restituire nulla. Da preferire a `\p{Han}`, che in questo PCRE dà un falso positivo su `·` (U+00B7, middle dot latino usato come separatore nel Suggester).
-21. Allineare `CLAUDE.md`: la riga «Chinese UI — da eliminare» e l'elenco dei provider non sono più validi dopo questa milestone.
-
-## Verifica della milestone
-
-Criteri di accettazione, da soddisfare tutti:
-
-1. **Build pulita** — `npm run check`, `npm run lint` e `npm run build` senza errori; prodotti `main.js`, `manifest.json`, `styles.css`.
-2. **Zero cinese nel sorgente** — `grep -rnP '[\x{3000}-\x{303F}\x{4E00}-\x{9FFF}\x{FF00}-\x{FFEF}]' src/` non restituisce risultati (ideogrammi, punteggiatura CJK e forme a larghezza intera).
-3. **Installazione** — artefatti copiati in `~/Documenti/Obsidian/tutorial-obsidian/.obsidian/plugins/llm-translate`, plugin attivato senza errori in console.
-4. **Impostazioni** — la pagina si apre interamente in inglese; si aggiunge un provider da preset, si inseriscono API key e modello, il valore si salva e resta dopo il riavvio.
-5. **Traduzione della selezione** — selezione di un paragrafo → comando dalla palette e dal menu contestuale → output in streaming che sostituisce il testo, con la lingua di destinazione predefinita «English».
-6. **Traduzione dell'intera nota** — su una nota con frontmatter: il frontmatter resta intatto, il corpo viene tradotto; oltre i 20.000 caratteri compare la modal di conferma in inglese.
-7. **Annullamento** — clic sull'indicatore di caricamento durante lo streaming → testo originale ripristinato integralmente.
-8. **Cambio provider** — con due provider configurati, il comando di switch mostra l'elenco in inglese e la traduzione successiva usa il provider selezionato.
-9. **Errori leggibili** — con una API key volutamente errata, la notifica d'errore appare in inglese, con titolo e suggerimenti coerenti con i nomi delle impostazioni.
-10. **Nessuna regressione sulle hotkey** — una hotkey assegnata prima delle modifiche continua a funzionare (gli `id` dei comandi non cambiano).
+Prove manuali superate il 19/08/2026: menu contestuale, pagina impostazioni con più provider, traduzione con due provider funzionanti, errore leggibile senza API key, modal di conferma oltre i 20.000 caratteri.
+Da riprovare dopo la correzione del problema 2: annullamento durante l'attesa → ripristino del testo originale.
