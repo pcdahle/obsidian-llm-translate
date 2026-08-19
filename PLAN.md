@@ -125,12 +125,37 @@ Dettagli che contano:
 
 Il pannello è anche il posto giusto per un eventuale streaming vero (problema 1): il testo può scorrere lì senza toccare il documento.
 
-## Fuori ambito, per ora
+## Milestone 2 — pubblicazione nella directory della comunità
 
-- **Sistema i18n multilingua** (file di traduzione, rilevamento della lingua di Obsidian, UI in italiano). Oggi le stringhe stanno nel codice, in inglese.
-- **Documentazione in italiano** per gli altri `.md` di lavoro.
-- **Identità del plugin per una distribuzione separata** — `manifest.json` (`id`, `author`, `authorUrl`) punta ancora all'upstream. Da cambiare se e quando il fork verrà pubblicato come plugin distinto.
-- **Nuove funzionalità** — glossario, cache, supporto mobile.
+Obiettivo: il plugin diventa installabile da chiunque, dalla schermata «Community plugins» di Obsidian, senza copiare file a mano.
+
+### Posizionamento
+
+Non è vero che sia l'unico plugin di traduzione non cinese: nella directory ci sono già **LLM Translator** (KimFischer99, LLM locali via Ollama più provider OpenAI-compatibili, centrato sulla selezione), **Translate** (Fevol, basato su servizi tipo Google e DeepL) e **Immersive Translate** (traduzione in modalità lettura).
+
+La combinazione che non si trova altrove, e che va messa in prima riga nel README, è:
+
+1. traduzione della **nota intera** con il front-matter YAML lasciato intatto;
+2. **revisione prima di accettare** — la nota non viene toccata finché non premi Insert;
+3. **preset multi-provider** con endpoint globali, cambiabili al volo da un comando.
+
+### Passi
+
+1. **Identità distinta dall'upstream** — `manifest.json` porta ancora `id: llm-translate`, `author: xiaochen` e l'`authorUrl` di chenyuxiaojin. L'`id` deve essere diverso da quello del plugin originale, altrimenti va in conflitto nella directory e nelle installazioni. Aggiornare anche `package.json` e `versions.json`.
+2. **Attribuzione del fork** — la licenza MIT dell'originale va mantenuta e citata: nel README, una riga che dica di chi è il lavoro di partenza e cosa è cambiato. È corretto verso l'autore ed è la prima cosa che un revisore chiede a un fork di un plugin già in elenco.
+3. **README per il pubblico** — in inglese, con i tre punti di posizionamento qui sopra, una schermata del pannello di revisione, la tabella dei provider, e una nota esplicita sul fatto che **le API key sono salvate in chiaro** in `data.json` del vault (è la norma per questi plugin, ma va detto).
+4. **Conformità alle regole di revisione** — chiudere i due warning rimasti di `eslint-plugin-obsidianmd`: adottare `getSettingDefinitions()` per la ricerca nelle impostazioni (Obsidian 1.13+), e sistemare il placeholder segnalato da `sentence-case`. Ricontrollare anche l'assenza di log rumorosi in produzione.
+5. **Release su GitHub** — tag uguale al numero di versione **senza** la `v` iniziale, con `main.js`, `manifest.json` e `styles.css` allegati come file, non solo nel sorgente.
+6. **Pull request su `obsidianmd/obsidian-releases`** — aggiunta della voce in `community-plugins.json`. Da lì parte la revisione, che può chiedere modifiche.
+7. **`isDesktopOnly`** — oggi `true`. Va rimesso a `false` solo dopo aver davvero provato il plugin su mobile.
+
+## Prossima versione (dopo la pubblicazione)
+
+- **Supporto mobile** — verificare `MobileLoaderStrategy` e il pannello laterale su schermo stretto, poi togliere `isDesktopOnly`.
+- **Sistema i18n multilingua** — file di traduzione e rilevamento della lingua di Obsidian, per avere l'interfaccia anche in italiano e in cinese. Oggi le stringhe stanno nel codice, in inglese.
+- **Streaming reale** — vedi problema 1.
+
+Scartati: **glossario** e **cache**. La cache eviterebbe di ritradurre due volte lo stesso testo (risparmio di token), ma ha senso solo se si ritraducono spesso le stesse note: non è il caso d'uso di questo plugin, dove un ritaglio si traduce una volta e si legge.
 
 ## Verifica
 
