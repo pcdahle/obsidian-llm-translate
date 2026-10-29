@@ -1,9 +1,9 @@
 {
   "id": "translate-note",
   "name": "TranslateNote",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "minAppVersion": "1.13.0",
-  "description": "Translate a selection or a whole note with any OpenAI-compatible LLM. The translation opens in a side panel for review, so the note only changes when you insert it. YAML front-matter is left intact.",
+  "description": "Translate Markdown prose with any OpenAI-compatible LLM. Choose a language per request, review translations, or safely save from the file explorer.",
   "author": "D.maggiora",
   "authorUrl": "https://github.com/Dmagg",
   "isDesktopOnly": true

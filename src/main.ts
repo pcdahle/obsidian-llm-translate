@@ -4,6 +4,7 @@ import {
   FuzzySuggestModal,
   Plugin,
   PluginManifest,
+  TFile,
 } from "obsidian";
 import type { Menu } from "obsidian";
 import "./styles.css";
@@ -14,6 +15,7 @@ import {
   DEFAULT_SETTINGS,
   PluginSettings,
   getActiveProvider,
+  loadPluginSettings,
 } from "./settings";
 import { SettingTab } from "./setting-tab";
 import type { ProviderConfig } from "./providers/types";
@@ -36,12 +38,17 @@ import type { TranslationSource } from "./ui/translation-view";
 import { AbortError } from "./utils/abort-error";
 import { LONG_TEXT_THRESHOLD, PLUGIN_NAME } from "./utils/constants";
 import { nextFrame } from "./utils/next-frame";
+import { chooseTranslationOptions } from "./ui/translation-options";
+import { SafeFileWriter } from "./files/safe-file-writer";
+import { protectMarkdown, PROTECTION_INSTRUCTION, TranslationSafetyError } from "./translation/protected-markdown";
 
 export default class TranslatePlugin extends Plugin {
   public override settings: PluginSettings = DEFAULT_SETTINGS;
   private llmClient: LLMClient | undefined;
   private readonly loaderStrategy: LoaderStrategy;
   private abortController: AbortController | undefined;
+  private translating = false;
+  private unloaded = false;
 
   constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
@@ -58,12 +65,13 @@ export default class TranslatePlugin extends Plugin {
     );
     this.registerCommands();
     this.registerEditorMenu();
+    this.registerFileMenu();
     this.rebuildLlmClient();
   }
 
   private registerEditorMenu(): void {
     this.registerEvent(
-      this.app.workspace.on("editor-menu", (menu: Menu, editor: Editor) => {
+      this.app.workspace.on("editor-menu", (menu: Menu, editor: Editor, info) => {
         const hasSelection = editor.getSelection().trim().length > 0;
         if (hasSelection) {
           menu.addItem((item) =>
@@ -72,7 +80,7 @@ export default class TranslatePlugin extends Plugin {
               .setIcon("languages")
               .setSection("selection")
               .onClick(() => {
-                void this.translateSelection(editor);
+                void this.translateSelection(editor, info?.file);
               }),
           );
         }
@@ -82,7 +90,7 @@ export default class TranslatePlugin extends Plugin {
             .setIcon("book-open-text")
             .setSection("selection")
             .onClick(() => {
-              void this.translateDocument(editor);
+              void this.translateDocument(editor, info?.file);
             }),
         );
         menu.addItem((item) =>
@@ -98,14 +106,32 @@ export default class TranslatePlugin extends Plugin {
     );
   }
 
+  private registerFileMenu(): void {
+    this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => {
+      if (!(file instanceof TFile) || file.extension.toLowerCase() !== "md") return;
+      menu.addItem((item) => item.setTitle("Translate…").setIcon("languages").onClick(() => {
+        void this.executeTranslation(async () => {
+          const filePath = file.path;
+          const originalContent = await this.app.vault.read(file);
+          const { bodyStartOffset } = extractBody(originalContent);
+          return {
+            file, filePath, originalContent,
+            replaceStart: bodyStartOffset, replaceEnd: originalContent.length, kind: "note",
+          };
+        }, true);
+      }));
+    }));
+  }
+
   override onunload(): void {
+    this.unloaded = true;
     this.abortController?.abort();
     this.loaderStrategy.stop();
   }
 
   async loadSettings(): Promise<void> {
     const data = (await this.loadData()) as Partial<PluginSettings> | null;
-    this.settings = { ...DEFAULT_SETTINGS, ...data };
+    this.settings = loadPluginSettings(data);
   }
 
   async saveSettings(): Promise<void> {
@@ -130,15 +156,15 @@ export default class TranslatePlugin extends Plugin {
     this.addCommand({
       id: "translate-selection",
       name: "Translate selection",
-      editorCallback: (editor) => {
-        void this.translateSelection(editor);
+      editorCallback: (editor, info) => {
+        void this.translateSelection(editor, info?.file);
       },
     });
     this.addCommand({
       id: "translate-document",
       name: "Translate full note (preserve front-matter)",
-      editorCallback: (editor) => {
-        void this.translateDocument(editor);
+      editorCallback: (editor, info) => {
+        void this.translateDocument(editor, info?.file);
       },
     });
     this.addCommand({
@@ -182,113 +208,101 @@ export default class TranslatePlugin extends Plugin {
     }).open();
   }
 
-  /** Translates the selected text into the review panel. */
-  private async translateSelection(editor: Editor): Promise<void> {
-    if (!this.ensureClient()) return;
-    const file = this.app.workspace.getActiveFile();
-    if (!file) {
-      showErrorNotification({ title: "No note is open" });
-      return;
-    }
-
-    const selection = editor.getSelection();
-    if (!selection.trim()) {
+  private async translateSelection(
+    editor: Editor, file: TFile | null = this.app.workspace.getActiveFile(),
+  ): Promise<void> {
+    if (!file) return;
+    if (!editor.getSelection().trim()) {
       showErrorNotification({ title: "Select the text you want to translate first" });
       return;
     }
-
-    await this.streamIntoReviewPanel({
-      userContent: selection,
-      loaderMessage: `${PLUGIN_NAME}: translating selection...`,
-      source: {
-        filePath: file.path,
-        originalContent: editor.getValue(),
-        replaceStart: editor.posToOffset(editor.getCursor("from")),
-        replaceEnd: editor.posToOffset(editor.getCursor("to")),
-        kind: "selection",
-      },
-    });
+    const source: TranslationSource = {
+      file, filePath: file.path, originalContent: editor.getValue(),
+      replaceStart: editor.posToOffset(editor.getCursor("from")),
+      replaceEnd: editor.posToOffset(editor.getCursor("to")), kind: "selection",
+    };
+    await this.executeTranslation(() => Promise.resolve(source), false);
   }
 
-  /**
-   * Translates the body of the active note into the review panel. The note is
-   * left untouched: it is the panel's "Insert" button that writes to it.
-   */
-  private async translateDocument(editor: Editor): Promise<void> {
+  private async translateDocument(
+    editor: Editor, file: TFile | null = this.app.workspace.getActiveFile(),
+  ): Promise<void> {
+    if (!file) return;
+    const originalContent = editor.getValue();
+    const { bodyStartOffset } = extractBody(originalContent);
+    const source: TranslationSource = {
+      file, filePath: file.path, originalContent, replaceStart: bodyStartOffset,
+      replaceEnd: originalContent.length, kind: "note",
+    };
+    await this.executeTranslation(() => Promise.resolve(source), false);
+  }
+
+  private async executeTranslation(
+    getSource: () => Promise<TranslationSource>, forFile: boolean,
+  ): Promise<void> {
+    // Acquire before the first await: dialogs and panel setup are part of the job.
+    if (this.translating || this.unloaded) {
+      showErrorNotification({ title: "A translation is already running" });
+      return;
+    }
     if (!this.ensureClient()) return;
-    const file = this.app.workspace.getActiveFile();
-    if (!file) {
-      showErrorNotification({ title: "No note is open" });
-      return;
-    }
-
-    const fullText = editor.getValue();
-    const { body, bodyStartOffset } = extractBody(fullText);
-
-    if (!body.trim()) {
-      showErrorNotification({ title: "The note body is empty, nothing to translate" });
-      return;
-    }
-
-    if (body.length > LONG_TEXT_THRESHOLD) {
-      const ok = await confirmLongText(this.app, body.length);
-      if (!ok) return;
-    }
-
-    await this.streamIntoReviewPanel({
-      userContent: body,
-      loaderMessage: `${PLUGIN_NAME}: translating full note...`,
-      source: {
-        filePath: file.path,
-        originalContent: fullText,
-        replaceStart: bodyStartOffset,
-        replaceEnd: fullText.length,
-        kind: "note",
-      },
-    });
-  }
-
-  /** Shared tail of both commands: open the panel and stream the reply into it. */
-  private async streamIntoReviewPanel({
-    userContent,
-    loaderMessage,
-    source,
-  }: {
-    userContent: string;
-    loaderMessage: string;
-    source: TranslationSource;
-  }): Promise<void> {
-    const view = await this.activateTranslationView();
-    if (!view) {
-      showErrorNotification({
-        title: "Could not open the translation panel",
-        suggestions: ["Make sure the right sidebar is available"],
+    this.translating = true;
+    const client = this.llmClient!;
+    const writer = new SafeFileWriter(
+      this.app, this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`,
+      () => !this.unloaded && !this.abortController?.signal.aborted,
+    );
+    let view: TranslationView | undefined;
+    try {
+      const source = await getSource();
+      await writer.assertUnchanged(source);
+      const prepared = protectMarkdown(source.originalContent, source.replaceStart, source.replaceEnd);
+      // Never replace an unaccepted translation with a new request.
+      view = await this.activateTranslationView();
+      if (!view) throw new TranslationSafetyError("Could not open the translation panel.");
+      if (view.hasPendingTranslation) {
+        throw new TranslationSafetyError("Insert, save or discard the current translation before starting another one.");
+      }
+      const options = await chooseTranslationOptions(this.app, this.settings, forFile);
+      if (!options || this.unloaded) return;
+      const length = source.replaceEnd - source.replaceStart;
+      if (length > LONG_TEXT_THRESHOLD && !(await confirmLongText(this.app, length))) return;
+      await writer.assertUnchanged(source);
+      this.settings.lastTargetLanguage = options.language;
+      await this.saveSettings();
+      if (this.unloaded) return;
+      view.beginTranslation(source, (mode, translation) => mode === "new-file"
+        ? writer.createNew(source, translation, options.language)
+        : writer.overwrite(source, translation));
+      const review = view;
+      await this.runStream({
+        client, targetLanguage: options.language, userContent: prepared.input,
+        loaderMessage: `${PLUGIN_NAME}: translating to ${options.language}...`,
+        // Protected spans are restored and verified before displaying editable text.
+        writeChunk: () => {},
+        finalize: async (text) => {
+          review.setText(prepared.restore(text));
+          review.completeTranslation();
+          if (options.mode !== "review") {
+            await review.save(options.mode === "new-file" ? "new-file" : "overwrite");
+          }
+        },
+        onAbort: () => review.cancelTranslation(),
+        onError: () => review.failTranslation(),
       });
-      return;
+    } catch (error) {
+      showErrorNotification({
+        title: "Could not start translation",
+        message: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      this.translating = false;
     }
-
-    view.beginTranslation(source);
-
-    await this.runStream({
-      userContent,
-      loaderMessage,
-      writeChunk: (text) => {
-        view.setText(text);
-      },
-      finalize: (text) => {
-        view.setText(text);
-        view.completeTranslation();
-      },
-      onAbort: () => {
-        view.cancelTranslation();
-      },
-      onError: () => {
-        view.failTranslation();
-      },
-    });
   }
 
   private async runStream({
+    client,
+    targetLanguage,
     userContent,
     loaderMessage,
     writeChunk,
@@ -296,10 +310,12 @@ export default class TranslatePlugin extends Plugin {
     onAbort,
     onError,
   }: {
+    client: LLMClient;
+    targetLanguage: string;
     userContent: string;
     loaderMessage: string;
     writeChunk: (text: string) => void;
-    finalize: (text: string) => void;
+    finalize: (text: string) => void | Promise<void>;
     onAbort: () => void;
     onError?: () => void;
   }): Promise<void> {
@@ -317,11 +333,11 @@ export default class TranslatePlugin extends Plugin {
 
     const systemPrompt = buildSystemPrompt(
       this.settings.translationSystemPrompt,
-      this.settings.targetLanguage,
-    );
+      targetLanguage,
+    ) + `\n\nTarget language for this translation: ${targetLanguage}.` + PROTECTION_INSTRUCTION;
 
     try {
-      const stream = this.llmClient!.getResponse({
+      const stream = client.getResponse({
         systemPrompt,
         userContent,
         signal: abortController.signal,
@@ -333,7 +349,8 @@ export default class TranslatePlugin extends Plugin {
         writeChunk(text);
         await nextFrame();
       }
-      finalize(text);
+      if (abortController.signal.aborted) throw new AbortError();
+      await finalize(text);
     } catch (error) {
       // The abort can surface as our own AbortError, as the SDK's
       // APIUserAbortError, or wrapped in an APIConnectionError when the fetch
@@ -342,7 +359,9 @@ export default class TranslatePlugin extends Plugin {
         onAbort();
       } else {
         onError?.();
-        showErrorNotification(mapLlmErrorToReadable(error));
+        showErrorNotification(error instanceof TranslationSafetyError
+          ? { title: "Translation was not saved", message: error.message }
+          : mapLlmErrorToReadable(error));
         logger.error("Translation failed", error);
       }
     } finally {

@@ -50,7 +50,11 @@ export class LLMClient {
         if (signal?.aborted) {
           throw new AbortError();
         }
-        const delta = chunk.choices[0]?.delta.content;
+        const choice = chunk.choices[0];
+        if (choice?.finish_reason && choice.finish_reason !== "stop") {
+          throw new Error(`The model did not finish the translation (${choice.finish_reason}). Nothing was saved.`);
+        }
+        const delta = choice?.delta.content;
         if (delta) {
           yield delta;
         }

@@ -1,162 +1,114 @@
-# TranslateNote
+# TranslateNote — language picker and safe file translation
 
-> An Obsidian plugin that translates a selection or a whole note with any OpenAI-compatible LLM, and shows the result in a side panel so you can read it against the original before it touches your note.
+An Obsidian desktop plugin based on [Dmagg/TranslateNote](https://github.com/Dmagg/obsidian-llm-translate), itself a fork of [LLM Translate](https://github.com/chenyuxiaojin/obsidian-llm-translate) (MIT).
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Obsidian](https://img.shields.io/badge/Obsidian-%3E%3D1.13.0-purple)](https://obsidian.md)
-[![Version](https://img.shields.io/badge/version-0.2.0-blue)](manifest.json)
+This fork keeps the existing OpenAI-compatible translation engine, provider configuration, error handling and editable review panel. Version **0.3.0** adds a language dialog and file-explorer translation with guarded writes. Requires **Obsidian 1.13.0+**; desktop only.
 
-> **Desktop only** — `isDesktopOnly: true`. Mobile has not been tested.
+## Translate
 
----
+Use **Translate selection** or **Translate full note (preserve front-matter)** from the command palette, editor context menu or your existing hotkey. Choose the target language in the dialog and press **Translate**. These commands continue to send the result to the review panel; **Insert** accepts it and **Discard** leaves the note alone.
 
-## Why
+**English** and **Swedish** are always quick choices. Add languages under **Settings → TranslateNote → Additional languages**, one per line or separated by commas/semicolons. Your existing **Target language** remains the initial default; the dialog remembers the last confirmed language across restarts. Cancel closes the dialog without sending a request or changing the remembered choice.
 
-You clip an English article or a YouTube transcript into Obsidian and want to read it in your own language, without leaving the editor.
+Right-click a Markdown file in the file explorer and choose **Translate…**. The file does not need to be open. Choose a language and a save mode:
 
-Most translation plugins overwrite your note with the result. That leaves you with no way to check the translation against the source, and nothing to go back to if it is wrong. TranslateNote sends the translation to a side panel instead: you read it next to the original, edit it if you want, and the note changes only when you press **Insert**.
+| Mode | Result |
+| --- | --- |
+| **Create new file** (default) | Keeps the original. Creates a file in the same folder with language, timestamp and a unique suffix in its name. |
+| **Review and overwrite** | Shows the editable result in the existing sidebar. Nothing is written until **Insert**. |
+| **Overwrite original** | Writes only after a complete, validated reply, an unchanged-source check and a verified recovery copy. |
 
----
+The review panel also offers **Create new file**, including after a refused overwrite. Accept, save or discard the current result before starting another translation. Save editor changes before translating; if the on-disk note and an open editor differ, the request is refused.
 
-## Features
+## Preservation and conflict handling
 
-- **Review before accepting** — the translation opens in a side panel with **Insert** and **Discard**. Your note is not modified until you insert.
-- **Editable result** — fix a word or a whole paragraph in the panel before inserting it.
-- **Translate a selection or the whole note** — for a full note, the YAML front-matter is left out of the translation and preserved on insert.
-- **Any target language** — a free-text field, not a fixed list. Type `Italian`, `Japanese`, `Brazilian Portuguese`; the model does the rest.
-- **Editable system prompt** — control tone and terminology, with a `{{targetLanguage}}` placeholder and a one-click restore.
-- **8 provider presets, plus custom** — every preset points at a globally reachable endpoint.
-- **Quick provider switch** — one command flips the active provider without opening settings.
-- **Safe insert** — if the note changed while you were reviewing, the insert is refused rather than overwriting your edits.
-- **Long-note guard** — notes over 20,000 characters ask for confirmation before the request goes out.
+The plugin parses CommonMark/GFM and sends prose with safety placeholders to the configured model. It restores the original protected spans locally and validates the result before displaying it for acceptance, and again after manual review edits.
 
----
+- YAML frontmatter, including BOM, line endings and metadata values, remains byte-for-byte unchanged.
+- Markdown structure, whitespace outside prose, lists, tasks, tables, emphasis and quote prefixes are preserved.
+- Markdown links, reference links, Obsidian `[[links|aliases]]`, embeds, URLs and `dbox:<UUID>` references remain unchanged, including link captions.
+- Headings remain in the original language to preserve heading anchors and incoming links. Code, HTML, math, tags, block identifiers and Obsidian comments are also kept unchanged.
+- Missing, duplicated or reordered placeholders, empty/truncated replies and changes to protected structure are refused. No automatic overwrite retry is made.
+- Overwrites check file identity/path, on-disk content and every open Markdown editor. The original-content comparison is also inside `vault.process`, so a late change does not pass an earlier stale check.
+- A save error keeps the valid translation in the panel. Copy it, save a new file, or discard and translate the updated note again.
 
-## Install
+**Limits:** validation protects structure and identifiers, not translation accuracy or every third-party Markdown extension. It is deliberately strict: review can edit prose, but removing a link or restructuring paragraphs is refused. A weak model or a conflicting custom prompt may repeatedly fail validation. Prose around protected spans may translate less fluently; review important text. Headings/link captions are deliberately not translated. Placeholder overhead increases token use. The inherited `requestUrl` transport buffers responses, so this is not live network streaming.
 
-The plugin is **not yet listed** in the Obsidian Community Plugin directory. To install it manually:
+`vault.process` coordinates Obsidian writes; it does not take an operating-system lock against Syncthing or another process. Direct disk checks catch external edits even before Obsidian receives a change event, but no guarantee is made against an external write racing the actual filesystem operation or replacing the result afterwards. Prefer **Create new file** or pause synchronization when overwriting important notes. Unique destination names and collision checks avoid reusing existing translation names; filesystem errors leave the result available in the panel.
 
-1. Download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/Dmagg/obsidian-llm-translate/releases).
-2. Create the folder `<your-vault>/.obsidian/plugins/translate-note/`.
-3. Copy the three files into it.
-4. Reload Obsidian, open **Settings → Community plugins**, find **TranslateNote** and enable it.
+**Dbox identities:** a new file copies frontmatter exactly, including an `id` field. Do not register both copies as independent managed Dbox documents with the same UUID. Use the Dbox document-creation workflow to assign a new identity if the translation is to become a separate managed document, or use review/overwrite to retain one document identity.
 
----
+## Install or upgrade this fork
 
-## Configuration
+This branch is a manual-install fork. Installing/updating the upstream Community Plugin is a separate source and may replace these changes.
 
-1. Open **Settings → TranslateNote**.
-2. Under **API providers**, press **+** and pick a preset.
-3. Open the provider that was added and fill in its **API key**. The **Base URL** and **Model name** come pre-filled; change the model if you want a different one.
-4. With more than one provider configured, open the one you want and press **Set as active** — or use the *Switch API provider* command.
+1. Build/download this fork's `translate-note-0.3.0.zip` (see below). It contains a `translate-note/` folder with **main.js**, **manifest.json**, **styles.css** only.
+2. If upgrading, disable TranslateNote and make a protected copy of the existing plugin folder and any notes you intend to overwrite.
+3. Copy the three files to `<vault>/.obsidian/plugins/translate-note/` (or your vault's custom configuration directory). **Keep existing `data.json` and `backups/`; do not replace the entire directory.** The plugin ID and command IDs are unchanged, so existing settings/hotkeys remain usable. Do not enable two copies with the same ID.
+4. Reload Obsidian and enable **TranslateNote** under **Settings → Community plugins**.
+5. Configure an API provider under **Settings → TranslateNote → API providers**, supply its key and model, and set it active. Existing providers, endpoints, models, keys and custom prompts are preserved. Presets and the **Switch API provider** command still work.
+6. Try **Create new file** on a small test note before using overwrite on valuable notes.
 
-Under **Translation** you set the **target language** (any language name) and, if you want, edit the **system prompt**.
+Only the three built files are required at runtime. Do not copy `node_modules` or build/test directories into the vault. API keys remain stored unencrypted in the vault's plugin `data.json`, as in upstream. Note prose is sent to the provider you select. Keep plugin data/recovery copies out of public repositories and handle synced vaults accordingly.
 
-### Where to get an API key
+## Recovery
 
-| Provider | Sign up | Pre-filled model |
-|---|---|---|
-| DeepSeek | [platform.deepseek.com](https://platform.deepseek.com) | `deepseek-chat` |
-| OpenAI | [platform.openai.com](https://platform.openai.com) | `gpt-5.4-mini` |
-| Gemini | [aistudio.google.com](https://aistudio.google.com) | `gemini-3.5-flash-lite` |
-| Kimi (Moonshot) | [platform.moonshot.ai](https://platform.moonshot.ai) | `kimi-k2.6` |
-| Qwen | [Alibaba Cloud Model Studio](https://www.alibabacloud.com/help/en/model-studio) | `qwen-turbo` |
-| Z.AI (GLM) | [z.ai](https://z.ai) | `glm-4.7-flash` |
-| OpenRouter | [openrouter.ai](https://openrouter.ai) | *(set manually)* |
-| Custom | any OpenAI-compatible endpoint | *(set manually)* |
+Before every overwrite (including **Insert**), the plugin writes and reads back a JSON recovery copy under:
 
-Model names move fast. If a pre-filled model has been retired, the plugin tells you so — change the **Model name** field to a current one from your provider's model list.
-
----
-
-## Usage
-
-### Commands (Cmd/Ctrl + P)
-
-| Command | What it does |
-|---|---|
-| **Translate selection** | Translates the selected text into the panel |
-| **Translate full note (preserve front-matter)** | Translates the note body into the panel |
-| **Switch API provider** | Picks the active provider from a list |
-
-All three are also in the editor's right-click menu, and can be bound to hotkeys under **Settings → Hotkeys**.
-
-### The review panel
-
-The translation appears in the right sidebar. From there:
-
-- **Insert** writes it back into the note — over the selected range for a selection, over the body for a full note, leaving the front-matter alone.
-- **Discard** throws it away. The note was never touched.
-- The text is a normal editable field, so you can correct the translation before inserting it.
-
----
-
-## The system prompt
-
-This is what the model is told by default:
-
-```
-You are a professional translation engine. Translate the following content into {{targetLanguage}}.
-
-Rules:
-- Preserve the paragraph structure and Markdown formatting of the source
-- The first time a proper noun or technical term appears, keep it in the source language and put the translation in parentheses right after it
-- Do not add explanations, summaries or comments; output the translation only
-- Preserve the tone and register of the source
-- Leave numbers, URLs and code snippets untouched
+```text
+<vault>/<config-directory>/plugins/translate-note/backups/<timestamp>-<uuid>.json
 ```
 
-`{{targetLanguage}}` is replaced by the **Target language** setting. Edit the prompt to suit your material — a glossary line, a register instruction, a rule about how to handle quotations — and use **Restore default prompt** to go back.
+Each file contains `format`, `createdAt`, `filePath` and the exact original `content`. A backup failure stops the overwrite. Backups are never automatically pruned, so review disk use and retain/remove them deliberately. They contain original note text and may be synced along with your configuration directory.
 
----
+To recover: stop editing/synchronization for the affected note, preserve a copy of its current state, open the relevant JSON, and restore the **decoded `content` string** to the recorded note path using a trusted editor or script. Compare it before resuming sync. Do not paste the JSON representation with its literal `\\n` escape sequences. Recovery copies preserve the original text, not attachments or filesystem metadata. For plugin rollback, disable TranslateNote and restore the previous three plugin files; retain `data.json` and recovery copies.
 
-## FAQ
+## Build and verify
 
-**Does it modify my note while translating?**
-No. The translation goes to the panel. The note changes only when you press **Insert**.
+Requires Node.js **22.6+**, npm, and Python 3 for the optional ZIP packaging step.
 
-**What if I edit the note while a translation is open in the panel?**
-The insert is refused, with a notice explaining why. Copy the text out of the panel, or run the translation again.
+```sh
+npm ci
+npm run verify
+```
 
-**Is the front-matter translated?**
-No. For a full note, only the body after the closing `---` is sent to the model, and the front-matter is preserved on insert.
+`verify` runs TypeScript, ESLint, the acceptance/regression tests, a production build, a smoke test of the actual CommonJS bundle, and packaging. Individual commands:
 
-**Which languages can I translate into?**
-Any language the model supports. **Target language** is a free-text field, so it works in every direction — set it to `English` to go the other way.
+```sh
+npm test               # parser, file safety, settings, dialogs, SDK integration
+npm run check
+npm run lint
+npm run build          # main.js and styles.css in repository root
+npm run test:bundle    # exercise the built bundle with a synthetic Obsidian host
+npm run package        # build, bundle smoke test and ZIP/checksums
+```
 
-**Where are my API keys stored?**
-Unencrypted, in `data.json` inside the plugin folder of your vault. This is how Obsidian plugins store settings. Keep it in mind if your vault is synced or shared.
+Outputs:
 
-**Can I use a local model?**
-Yes. Pick **Custom** and point the base URL at your endpoint — for example `http://localhost:11434/v1` for Ollama.
+```text
+dist/translate-note-0.3.0.zip
+dist/translate-note/{main.js,manifest.json,styles.css}
+dist/SHA256SUMS
+dist/BUILD.json
+```
 
-**What happens with very long notes?**
-Over 20,000 characters you get a confirmation first. The request is sent in one go, so a long note means a large single request: worth knowing if your plan has tight limits.
+Check the archive with `cd dist && sha256sum -c SHA256SUMS`. `BUILD.json` records the source commit and whether the checkout had uncommitted changes. ZIP entries have fixed timestamps and are read back against the built files. No keys, note backups, development dependencies or test fixtures are packaged.
 
-**Does it work on mobile?**
-Untested. The manifest says `isDesktopOnly: true`.
+Tests run the actual plugin modules and existing OpenAI SDK/fetch adapter with synthetic replies, a contract implementation of the Obsidian API, and JSDOM for UI behavior. A separate smoke test loads the exact production bundle, verifies it has no runtime dependency except Obsidian, and exercises the file menu through saving a new file. These checks **do not claim verification in an installed Obsidian desktop application, with a real provider, or against a live Syncthing client**. Mobile remains unsupported. No real vault or paid model request is used.
 
----
+The upstream lockfile has inherited development-tool dependency advisories; `npm audit --omit=dev` checks the shipped dependency set separately. Dependency remediation is outside this feature's scope; do not run `npm audit fix --force` as part of installation.
 
-## Requirements
+## Future upstream updates
 
-- Obsidian ≥ 1.13.0
-- Desktop (macOS / Windows / Linux)
-- An API key from at least one provider
+The Git remotes stay distinct:
 
----
+```text
+origin    https://github.com/pcdahle/obsidian-llm-translate.git
+upstream  https://github.com/Dmagg/obsidian-llm-translate.git
+```
 
-## License
+Fetch with `git fetch upstream`, inspect the changes, integrate on a separate branch and run `npm run verify`. Do not overwrite this fork's files with upstream artifacts without reviewing compatibility.
 
-[MIT](LICENSE)
+## License and attribution
 
-- Original work © 2026 xiaochen (陈与小金)
-- Fork and subsequent modifications © 2026 D.maggiora
-
----
-
-## Acknowledgements
-
-TranslateNote is a fork of [LLM Translate](https://github.com/chenyuxiaojin/obsidian-llm-translate) by 陈与小金, which is itself derived from [obsidian-llm-shortcut](https://github.com/chernodub/obsidian-llm-shortcut) by chernodub — the OpenAI-compatible request adapter and the loading indicator come from that lineage.
-
-This fork exists because the original is a Chinese-only plugin: its interface, its error messages and its default prompt were all in Chinese, which put a good translator out of reach for anyone who does not read it. What changed here: the whole plugin is in English, the provider presets point at globally reachable endpoints, and translations go through a review panel instead of overwriting the note.
+[MIT](LICENSE). Original work © 2026 xiaochen (陈与小金); international/review-panel fork © 2026 D.maggiora. This fork builds on that work and keeps its license and credits. The original lineage includes [obsidian-llm-shortcut](https://github.com/chernodub/obsidian-llm-shortcut).

@@ -38,12 +38,20 @@ export class SettingTab extends PluginSettingTab {
         items: [
           {
             name: "Target language",
-            desc: "The language to translate into. This value replaces {{targetLanguage}} in the prompt.",
+            desc: "Default language for the translation dialog. Existing values are kept. The dialog remembers your last choice.",
             control: {
               type: "text",
               key: "targetLanguage",
               placeholder: "English",
               defaultValue: "English",
+            },
+          },
+          {
+            name: "Additional languages",
+            desc: "One language per line, or separated by commas. English and Swedish are always available.",
+            control: {
+              type: "textarea", key: "additionalLanguages", rows: 4,
+              placeholder: "German, French, Italian", defaultValue: "",
             },
           },
           {
