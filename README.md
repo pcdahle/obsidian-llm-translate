@@ -42,7 +42,7 @@ The plugin parses CommonMark/GFM and sends prose with safety placeholders to the
 
 This branch is a manual-install fork. Installing/updating the upstream Community Plugin is a separate source and may replace these changes.
 
-1. Build/download this fork's `translate-note-0.3.0.zip` (see below). It contains a `translate-note/` folder with **main.js**, **manifest.json**, **styles.css** only.
+1. Download the built plugin from this branch's successful **Actions → Check** run: under **Artifacts**, choose **translate-note-install**. That ZIP contains **main.js**, **manifest.json** and **styles.css** at its root. GitHub may require you to sign in; artifacts are retained for 30 days. **Code → Download ZIP is the source archive and does not contain main.js.** Alternatively build locally: `dist/translate-note-0.3.0.zip` contains the same three files inside a `translate-note/` folder.
 2. If upgrading, disable TranslateNote and make a protected copy of the existing plugin folder and any notes you intend to overwrite.
 3. Copy the three files to `<vault>/.obsidian/plugins/translate-note/` (or your vault's custom configuration directory). **Keep existing `data.json` and `backups/`; do not replace the entire directory.** The plugin ID and command IDs are unchanged, so existing settings/hotkeys remain usable. Do not enable two copies with the same ID.
 4. Reload Obsidian and enable **TranslateNote** under **Settings → Community plugins**.

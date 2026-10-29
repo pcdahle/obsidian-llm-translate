@@ -16,3 +16,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify
+      - name: Upload installable plugin
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: translate-note-install
+          path: dist/translate-note/
+          if-no-files-found: error
+          retention-days: 30
