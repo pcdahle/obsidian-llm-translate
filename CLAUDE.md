@@ -1,5 +1,8 @@
 # CLAUDE.md
 
+> Per il fork `pcdahle`, `README.md` descrive l'interfaccia, i test e l'installazione attuali della versione 0.3.0. I percorsi personali riportati sotto appartengono al fork precedente e non sono destinazioni di deployment per questo repository. Non installare automaticamente in un vault reale. La cronologia e i crediti originali restano conservati.
+
+
 ## Fork del plugin per Obsidian di 陈与小金 Chenyuxiaojin e Claude: 
 
 linguaggio: Typescript -> JS

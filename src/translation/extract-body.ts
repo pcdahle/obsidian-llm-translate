@@ -11,7 +11,7 @@ export interface DocumentParts {
  * frontmatter is empty and body is the whole document.
  */
 export function extractBody(content: string): DocumentParts {
-  const match = content.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
+  const match = content.match(/^\uFEFF?---[ \t]*\r?\n(?:[\s\S]*?\r?\n)?(?:---|\.\.\.)[ \t]*(?:\r?\n|$)/);
   if (!match) {
     return { frontmatter: "", body: content, bodyStartOffset: 0 };
   }

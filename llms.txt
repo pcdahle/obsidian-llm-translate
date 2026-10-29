@@ -1,16 +1,14 @@
 # TranslateNote
 
-> An Obsidian plugin that translates a selection or a whole note with any OpenAI-compatible LLM, and shows the result in a side panel so it can be read against the original before it touches the note.
+An Obsidian desktop plugin (1.13.0+) using the existing OpenAI-compatible SDK client and editable review panel.
 
-TranslateNote lets you translate articles, notes, or web clippings into any language directly inside Obsidian, using your own LLM API key.
-The translation opens in a side panel with Insert and Discard: the note is not modified until the reader accepts it, and the text can be edited in the panel first.
-Full-note translation leaves the YAML front-matter untouched, and an insert is refused if the note changed while it was being reviewed.
-The target language is a free-text field rather than a fixed list, and the system prompt is editable.
-Eight provider presets — DeepSeek, OpenAI, Gemini, Kimi (Moonshot), Qwen, Z.AI, OpenRouter, plus Custom — all point at globally reachable endpoints.
+This fork adds per-request language selection (English/Swedish quick choices, configurable additional languages, persisted last choice), file-explorer Translate… with overwrite/review/new-file modes, protected Markdown prose translation, guarded writes and recovery copies.
 
-## Documentation
-- [README (English)](README.md): installation, configuration, usage, and FAQ.
+Plugin ID: translate-note. Existing command IDs and provider settings are retained. Headings, metadata, whole links/aliases, code and supported structural syntax stay unchanged. Failed validation or conflicting writes do not overwrite the source. Backups are under the plugin's backups directory. New files copy frontmatter including any identity fields; see README for managed Dbox identity handling.
 
-## Links
-- Repository: https://github.com/Dmagg/obsidian-llm-translate
-- Upstream project this is forked from: https://github.com/chenyuxiaojin/obsidian-llm-translate
+See README.md for supported behavior, limitations, manual installation and recovery.
+
+Development: npm ci; npm run verify. Packaging additionally needs Python 3. Artifacts: dist/translate-note-0.3.0.zip, SHA256SUMS and BUILD.json. Tests use synthetic Obsidian/API hosts, not an installed Obsidian app or real provider.
+
+origin: https://github.com/pcdahle/obsidian-llm-translate
+upstream: https://github.com/Dmagg/obsidian-llm-translate
